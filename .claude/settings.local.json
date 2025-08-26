@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Responde siempre en español"
+    ],
+    "deny": []
+  }
+}
