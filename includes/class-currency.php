@@ -248,10 +248,10 @@ class Myd_Currency {
 			// 	'name' => __( 'Ethiopian Birr', 'myd-delivery-pro' ),
 			// 	'symbol' => 'Nkf',
 			// ),
-			// "EUR" => array(
-			// 	'name' => __( 'Euro', 'myd-delivery-pro' ),
-			// 	'symbol' => '€',
-			// ),
+			"EUR" => array(
+				'name' => __( 'Euro', 'myd-delivery-pro' ),
+				'symbol' => '€',
+			),
 			// "FKP" => array(
 			// 	'name' => __( 'Falkland Islands Pound', 'myd-delivery-pro' ),
 			// 	'symbol' => '£',

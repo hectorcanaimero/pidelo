@@ -8,22 +8,28 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /**
  * Currency Converter Class
- * Handles USD to VEF/VES conversion using DolarAPI Venezuela
- * 
+ * Handles currency conversions to VEF (Bolívares Venezolanos):
+ * - USD -> VEF
+ * - EUR -> VEF
+ * Shows conversion based on selected currency in settings
+ *
  * @since 2.2.19
+ * @updated 2.2.20 - Added EUR -> VEF support
  */
 class Currency_Converter {
 
 	/**
-	 * API URL for Venezuelan dollar rates
+	 * API URLs for currency rates
+	 * Both endpoints return conversion rates to VEF (Venezuelan Bolívar)
 	 */
-	// const API_URL = 'https://ve.dolarapi.com/v1/dolares';
-	const API_URL = 'https://webhooks.guria.lat/webhook/a4b29525-f9a9-4374-a76f-c462046357b5';
+	const API_URL_USD_VEF = 'https://webhooks.guria.lat/webhook/a4b29525-f9a9-4374-a76f-c462046357b5';
+	const API_URL_EUR_VEF = 'https://webhooks.guria.lat/webhook/6ed6fb33-d736-43af-9038-7a7e2a2a1116';
 
 	/**
-	 * Transient key for caching the official rate
+	 * Transient keys for caching rates
 	 */
-	const TRANSIENT_KEY = 'myd_dolar_oficial_rate';
+	const TRANSIENT_KEY_USD_VEF = 'myd_usd_vef_rate';
+	const TRANSIENT_KEY_EUR_VEF = 'myd_eur_vef_rate';
 
 	/**
 	 * Cache duration in seconds (30 minutes)
@@ -31,20 +37,41 @@ class Currency_Converter {
 	const CACHE_DURATION = 1800;
 
 	/**
-	 * Get the official USD to VEF rate from DolarAPI
+	 * Get current store currency code
+	 *
+	 * @since 2.2.20
+	 * @return string Currency code (USD, EUR, VEF, etc.)
+	 */
+	public static function get_store_currency() {
+		return Myd_Currency::get_currency_code();
+	}
+
+	/**
+	 * Check if currency conversion is enabled
+	 *
+	 * @since 2.2.20
+	 * @return bool
+	 */
+	public static function is_conversion_enabled() {
+		$enabled = get_option( 'myd-currency-conversion-enabled', false );
+		return $enabled === '1' || $enabled === 1 || $enabled === true;
+	}
+
+	/**
+	 * Get the official USD to VEF rate
 	 *
 	 * @since 2.2.19
-	 * @return float|false The official rate or false on error
+	 * @return float|false The USD to VEF rate or false on error
 	 */
-	public static function get_official_rate() {
-		$rate = get_transient( self::TRANSIENT_KEY );
+	public static function get_usd_vef_rate() {
+		$rate = get_transient( self::TRANSIENT_KEY_USD_VEF );
 
 		if ( false === $rate ) {
-			$data = self::fetch_data_from_api();
-			
+			$data = self::fetch_data_from_api( 'USD' );
+
 			if ( $data !== false && isset( $data['promedio'] ) ) {
 				$rate = $data['promedio'];
-				set_transient( self::TRANSIENT_KEY, $rate, self::CACHE_DURATION );
+				set_transient( self::TRANSIENT_KEY_USD_VEF, $rate, self::CACHE_DURATION );
 			} else {
 				return false;
 			}
@@ -54,18 +81,57 @@ class Currency_Converter {
 	}
 
 	/**
-	 * Get the complete BCV data (rate, name, update date)
+	 * Get the official EUR to VEF rate
+	 *
+	 * @since 2.2.20
+	 * @return float|false The EUR to VEF rate or false on error
+	 */
+	public static function get_eur_vef_rate() {
+		$rate = get_transient( self::TRANSIENT_KEY_EUR_VEF );
+
+		if ( false === $rate ) {
+			$data = self::fetch_data_from_api( 'EUR' );
+
+			if ( $data !== false && isset( $data['promedio'] ) ) {
+				$rate = $data['promedio'];
+				set_transient( self::TRANSIENT_KEY_EUR_VEF, $rate, self::CACHE_DURATION );
+			} else {
+				return false;
+			}
+		}
+
+		return $rate;
+	}
+
+	/**
+	 * Alias for backwards compatibility
+	 * @deprecated Use get_usd_vef_rate() instead
+	 */
+	public static function get_official_rate() {
+		return self::get_usd_vef_rate();
+	}
+
+	/**
+	 * Alias for backwards compatibility
+	 * @deprecated Use get_eur_vef_rate() instead
+	 */
+	public static function get_eur_rate() {
+		return self::get_eur_vef_rate();
+	}
+
+	/**
+	 * Get the complete USD->VEF data (rate, name, update date)
 	 *
 	 * @since 2.2.19
-	 * @return array|false The complete BCV data or false on error
+	 * @return array|false The complete USD->VEF data or false on error
 	 */
-	public static function get_bcv_data() {
-		$transient_key = 'myd_bcv_data';
+	public static function get_usd_vef_data() {
+		$transient_key = 'myd_usd_vef_data';
 		$data = get_transient( $transient_key );
 
 		if ( false === $data ) {
-			$data = self::fetch_data_from_api();
-			
+			$data = self::fetch_data_from_api( 'USD' );
+
 			if ( $data !== false ) {
 				set_transient( $transient_key, $data, self::CACHE_DURATION );
 			}
@@ -75,14 +141,55 @@ class Currency_Converter {
 	}
 
 	/**
-	 * Fetch data from DolarAPI
+	 * Get the complete EUR->VEF data (rate, name, update date)
+	 *
+	 * @since 2.2.20
+	 * @return array|false The complete EUR->VEF data or false on error
+	 */
+	public static function get_eur_vef_data() {
+		$transient_key = 'myd_eur_vef_data';
+		$data = get_transient( $transient_key );
+
+		if ( false === $data ) {
+			$data = self::fetch_data_from_api( 'EUR' );
+
+			if ( $data !== false ) {
+				set_transient( $transient_key, $data, self::CACHE_DURATION );
+			}
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Alias for backwards compatibility
+	 * @deprecated Use get_usd_vef_data() instead
+	 */
+	public static function get_bcv_data() {
+		return self::get_usd_vef_data();
+	}
+
+	/**
+	 * Alias for backwards compatibility
+	 * @deprecated Use get_eur_vef_data() instead
+	 */
+	public static function get_eur_data() {
+		return self::get_eur_vef_data();
+	}
+
+	/**
+	 * Fetch data from API
 	 *
 	 * @since 2.2.19
-	 * @return array|false The official BCV data or false on error
+	 * @updated 2.2.20 - Added EUR currency type
+	 * @param string $currency_type 'USD' or 'EUR' (both convert to VEF)
+	 * @return array|false The currency data or false on error
 	 */
-	private static function fetch_data_from_api() {
-		$response = wp_remote_get( 
-			self::API_URL,
+	private static function fetch_data_from_api( $currency_type = 'USD' ) {
+		$api_url = $currency_type === 'EUR' ? self::API_URL_EUR_VEF : self::API_URL_USD_VEF;
+
+		$response = wp_remote_get(
+			$api_url,
 			array(
 				'timeout' => 10,
 				'headers' => array(
@@ -130,7 +237,7 @@ class Currency_Converter {
 	 * Convert USD amount to VEF using official rate
 	 *
 	 * @since 2.2.19
-	 * @param float $usd_amount The amount in USD to convert
+	 * @param float $usd_amount The amount in USD to convert to VEF
 	 * @return float|false The converted amount in VEF or false on error
 	 */
 	public static function convert_usd_to_vef( $usd_amount ) {
@@ -138,12 +245,32 @@ class Currency_Converter {
 			return false;
 		}
 
-		$rate = self::get_official_rate();
+		$rate = self::get_usd_vef_rate();
 		if ( $rate === false || $rate <= 0 ) {
 			return false;
 		}
 
 		return floatval( $usd_amount ) * $rate;
+	}
+
+	/**
+	 * Convert EUR amount to VEF using official rate
+	 *
+	 * @since 2.2.20
+	 * @param float $eur_amount The amount in EUR to convert to VEF
+	 * @return float|false The converted amount in VEF or false on error
+	 */
+	public static function convert_eur_to_vef( $eur_amount ) {
+		if ( ! is_numeric( $eur_amount ) || $eur_amount <= 0 ) {
+			return false;
+		}
+
+		$rate = self::get_eur_vef_rate();
+		if ( $rate === false || $rate <= 0 ) {
+			return false;
+		}
+
+		return floatval( $eur_amount ) * $rate;
 	}
 
 	/**
@@ -159,99 +286,192 @@ class Currency_Converter {
 	}
 
 	/**
-	 * Check if currency conversion is enabled in settings
+	 * Get converted amount based on store currency
+	 * Auto-detects which conversion to apply:
+	 * - If store currency is EUR: convert to VEF (Bolívares)
+	 * - If store currency is USD: convert to VEF (Bolívares)
+	 * - If store currency is VEF: no conversion needed
 	 *
-	 * @since 2.2.19
-	 * @return bool True if enabled, false otherwise
+	 * @since 2.2.20
+	 * @param float $amount Amount in store currency
+	 * @return array|false Array with converted amount and currency code, or false on error
 	 */
-	public static function is_conversion_enabled() {
-		$enabled = get_option( 'myd-currency-conversion-enabled', false );
-		return $enabled === '1' || $enabled === 1 || $enabled === true;
+	public static function get_conversion( $amount ) {
+		// Convert to float for proper comparison
+		$amount = floatval( $amount );
+
+		if ( ! is_numeric( $amount ) || $amount <= 0 ) {
+			return false;
+		}
+
+		if ( ! self::is_conversion_enabled() ) {
+			return false;
+		}
+
+		$store_currency = self::get_store_currency();
+
+		switch ( $store_currency ) {
+			case 'EUR':
+				// EUR -> VEF conversion
+				$vef_amount = self::convert_eur_to_vef( $amount );
+				if ( $vef_amount !== false ) {
+					return array(
+						'amount' => $vef_amount,
+						'currency_code' => 'VEF',
+						'currency_symbol' => 'Bs',
+						'currency_name' => 'Bolívares',
+					);
+				}
+				break;
+
+			case 'USD':
+				// USD -> VEF conversion
+				$vef_amount = self::convert_usd_to_vef( $amount );
+				if ( $vef_amount !== false ) {
+					return array(
+						'amount' => $vef_amount,
+						'currency_code' => 'VEF',
+						'currency_symbol' => 'Bs',
+						'currency_name' => 'Bolívares',
+					);
+				}
+				break;
+
+			case 'VEF':
+			default:
+				// No conversion for VEF or other currencies
+				return false;
+		}
+
+		return false;
 	}
 
 	/**
-	 * Get conversion display HTML for a USD price
+	 * Get conversion display HTML for any price based on store currency
+	 * Automatically shows the appropriate conversion:
+	 * - EUR store: shows VEF (Bolívares) equivalent
+	 * - USD store: shows VEF (Bolívares) equivalent
+	 * - VEF store: no conversion shown
 	 *
-	 * @since 2.2.19
-	 * @param float $usd_price The price in USD
-	 * @param bool $show_both Whether to show both currencies or just VEF
+	 * @since 2.2.20
+	 * @param float $price The price in store currency
+	 * @param bool $show_both Whether to show both currencies or just converted
 	 * @return string HTML markup for the conversion display
 	 */
-	public static function get_conversion_display( $usd_price, $show_both = true ) {
-		if ( ! self::is_conversion_enabled() ) {
+	public static function get_conversion_display( $price, $show_both = true ) {
+		$conversion = self::get_conversion( $price );
+
+		if ( $conversion === false ) {
 			return '';
 		}
 
-		$vef_amount = self::convert_usd_to_vef( $usd_price );
-		if ( $vef_amount === false ) {
-			return '';
-		}
-
+		$store_currency = self::get_store_currency();
 		$currency_symbol = Store_Data::get_store_data( 'currency_simbol' );
-		$formatted_vef = self::format_vef_amount( $vef_amount );
 
 		$html = '<div class="myd-currency-conversion">';
-		
+
 		if ( $show_both ) {
-			$html .= '<span class="myd-usd-price">' . esc_html( $currency_symbol ) . number_format( $usd_price, 2 ) . ' USD</span>';
+			$html .= '<span class="myd-original-price">';
+			$html .= esc_html( $currency_symbol ) . ' ' . number_format( $price, 2, ',', '.' );
+			$html .= ' <small>' . esc_html( $store_currency ) . '</small>';
+			$html .= '</span>';
 			$html .= '<span class="myd-currency-separator"> ≈ </span>';
 		}
-		
-		$html .= '<span class="myd-vef-price">Bs. ' . esc_html( $formatted_vef ) . '</span>';
+
+		$html .= '<span class="myd-converted-price myd-vef-price">';
+		$html .= esc_html( $conversion['currency_symbol'] ) . ' ';
+		$html .= number_format( $conversion['amount'], 2, ',', '.' );
+		$html .= ' <small>' . esc_html( $conversion['currency_code'] ) . '</small>';
+		$html .= '</span>';
+
 		$html .= '</div>';
 
 		return $html;
 	}
 
 	/**
-	 * Clear the cached rate (useful for manual refresh)
+	 * Clear all cached rates (useful for manual refresh)
 	 *
 	 * @since 2.2.19
+	 * @updated 2.2.20 - Clear both USD->VEF and EUR->VEF caches
 	 * @return bool True on success, false on failure
 	 */
 	public static function clear_rate_cache() {
-		return delete_transient( self::TRANSIENT_KEY );
+		$usd_cleared = delete_transient( self::TRANSIENT_KEY_USD_VEF );
+		$eur_cleared = delete_transient( self::TRANSIENT_KEY_EUR_VEF );
+		delete_transient( 'myd_usd_vef_data' );
+		delete_transient( 'myd_eur_vef_data' );
+		// Legacy transients
+		delete_transient( 'myd_dolar_oficial_rate' );
+		delete_transient( 'myd_bcv_data' );
+		return $usd_cleared && $eur_cleared;
 	}
 
 	/**
 	 * Get rate cache info for debugging
 	 *
 	 * @since 2.2.19
-	 * @return array Cache information
+	 * @updated 2.2.20 - Updated for USD->VEF and EUR->VEF
+	 * @return array Cache information for both conversion rates
 	 */
 	public static function get_cache_info() {
-		$rate = get_transient( self::TRANSIENT_KEY );
-		$timeout = get_option( '_transient_timeout_' . self::TRANSIENT_KEY );
-		
+		$usd_rate = get_transient( self::TRANSIENT_KEY_USD_VEF );
+		$usd_timeout = get_option( '_transient_timeout_' . self::TRANSIENT_KEY_USD_VEF );
+
+		$eur_rate = get_transient( self::TRANSIENT_KEY_EUR_VEF );
+		$eur_timeout = get_option( '_transient_timeout_' . self::TRANSIENT_KEY_EUR_VEF );
+
 		return array(
-			'rate' => $rate,
-			'cached' => $rate !== false,
-			'expires_at' => $timeout ? date( 'Y-m-d H:i:s', $timeout ) : null,
-			'expires_in_minutes' => $timeout ? round( ( $timeout - time() ) / 60 ) : null,
+			'usd_to_vef' => array(
+				'rate' => $usd_rate,
+				'cached' => $usd_rate !== false,
+				'expires_at' => $usd_timeout ? date( 'Y-m-d H:i:s', $usd_timeout ) : null,
+				'expires_in_minutes' => $usd_timeout ? round( ( $usd_timeout - time() ) / 60 ) : null,
+			),
+			'eur_to_vef' => array(
+				'rate' => $eur_rate,
+				'cached' => $eur_rate !== false,
+				'expires_at' => $eur_timeout ? date( 'Y-m-d H:i:s', $eur_timeout ) : null,
+				'expires_in_minutes' => $eur_timeout ? round( ( $eur_timeout - time() ) / 60 ) : null,
+			),
 		);
 	}
 
 	/**
-	 * Shortcode para mostrar información del BCV
+	 * Shortcode para mostrar información de conversión según moneda activa
+	 * Muestra USD->VEF o EUR->VEF automáticamente
 	 *
 	 * @since 2.2.19
+	 * @updated 2.2.20 - Auto-detect currency (USD or EUR)
 	 * @param array $atts Atributos del shortcode
 	 * @return string HTML del shortcode
 	 */
 	public static function bcv_rate_shortcode( $atts = array() ) {
 		$atts = shortcode_atts( array(
 			'show_name' => 'true',
-			'show_rate' => 'true', 
+			'show_rate' => 'true',
 			'show_date' => 'true',
 			'date_format' => 'd/m/Y H:i',
 			'class' => 'myd-bcv-info'
 		), $atts, 'myd_bcv_rate' );
 
-		$data = self::get_bcv_data();
-		
+		// Detectar moneda activa
+		$store_currency = self::get_store_currency();
+		$data = false;
+		$currency_label = 'USD';
+
+		// Obtener datos según la moneda configurada
+		if ( $store_currency === 'EUR' ) {
+			$data = self::get_eur_vef_data();
+			$currency_label = 'EUR';
+		} elseif ( $store_currency === 'USD' ) {
+			$data = self::get_usd_vef_data();
+			$currency_label = 'USD';
+		}
+
 		if ( $data === false ) {
-			return '<div class="' . esc_attr( $atts['class'] ) . ' myd-bcv-error">' . 
-				   esc_html__( 'Error al obtener datos del BCV', 'myd-delivery-pro' ) . 
+			return '<div class="' . esc_attr( $atts['class'] ) . ' myd-bcv-error">' .
+				   esc_html__( 'Error al obtener datos de conversión', 'myd-delivery-pro' ) .
 				   '</div>';
 		}
 
@@ -263,16 +483,16 @@ class Currency_Converter {
 
 		if ( $atts['show_rate'] === 'true' && isset( $data['promedio'] ) ) {
 			$formatted_rate = self::format_vef_amount( $data['promedio'] );
-			$html .= '<div class="myd-bcv-rate">Bs. ' . esc_html( $formatted_rate ) . ' / USD</div>';
+			$html .= '<div class="myd-bcv-rate">Bs. ' . esc_html( $formatted_rate ) . ' / ' . esc_html( $currency_label ) . '</div>';
 		}
 
 		if ( $atts['show_date'] === 'true' && isset( $data['fechaActualizacion'] ) && $data['fechaActualizacion'] ) {
 			$date = date_create( $data['fechaActualizacion'] );
 			if ( $date !== false ) {
 				$formatted_date = date_format( $date, $atts['date_format'] );
-				$html .= '<div class="myd-bcv-date">' . 
-						 esc_html__( 'Actualizado:', 'myd-delivery-pro' ) . ' ' . 
-						 esc_html( $formatted_date ) . 
+				$html .= '<div class="myd-bcv-date">' .
+						 esc_html__( 'Actualizado:', 'myd-delivery-pro' ) . ' ' .
+						 esc_html( $formatted_date ) .
 						 '</div>';
 			}
 		}
@@ -283,11 +503,64 @@ class Currency_Converter {
 	}
 
 	/**
-	 * Registrar el shortcode
+	 * Shortcode para mostrar información del EUR
+	 *
+	 * @since 2.2.20
+	 * @param array $atts Atributos del shortcode
+	 * @return string HTML del shortcode
+	 */
+	public static function eur_rate_shortcode( $atts = array() ) {
+		$atts = shortcode_atts( array(
+			'show_name' => 'true',
+			'show_rate' => 'true',
+			'show_date' => 'true',
+			'date_format' => 'd/m/Y H:i',
+			'class' => 'myd-eur-info'
+		), $atts, 'myd_eur_rate' );
+
+		$data = self::get_eur_data();
+
+		if ( $data === false ) {
+			return '<div class="' . esc_attr( $atts['class'] ) . ' myd-eur-error">' .
+				   esc_html__( 'Error al obtener datos del EUR', 'myd-delivery-pro' ) .
+				   '</div>';
+		}
+
+		$html = '<div class="' . esc_attr( $atts['class'] ) . '">';
+
+		if ( $atts['show_name'] === 'true' && isset( $data['nombre'] ) ) {
+			$html .= '<div class="myd-eur-name">' . esc_html( $data['nombre'] ) . '</div>';
+		}
+
+		if ( $atts['show_rate'] === 'true' && isset( $data['promedio'] ) ) {
+			$formatted_rate = number_format( $data['promedio'], 2, ',', '.' );
+			$html .= '<div class="myd-eur-rate">€ ' . esc_html( $formatted_rate ) . '</div>';
+		}
+
+		if ( $atts['show_date'] === 'true' && isset( $data['fechaActualizacion'] ) && $data['fechaActualizacion'] ) {
+			$date = date_create( $data['fechaActualizacion'] );
+			if ( $date !== false ) {
+				$formatted_date = date_format( $date, $atts['date_format'] );
+				$html .= '<div class="myd-eur-date">' .
+						 esc_html__( 'Actualizado:', 'myd-delivery-pro' ) . ' ' .
+						 esc_html( $formatted_date ) .
+						 '</div>';
+			}
+		}
+
+		$html .= '</div>';
+
+		return $html;
+	}
+
+	/**
+	 * Registrar los shortcodes
 	 *
 	 * @since 2.2.19
+	 * @updated 2.2.20 - Added EUR shortcode
 	 */
 	public static function register_shortcode() {
 		add_shortcode( 'myd_bcv_rate', array( __CLASS__, 'bcv_rate_shortcode' ) );
+		add_shortcode( 'myd_eur_rate', array( __CLASS__, 'eur_rate_shortcode' ) );
 	}
 }

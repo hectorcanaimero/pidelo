@@ -195,11 +195,12 @@ final class Plugin {
 		$this->store_data = Store_Data::get_store_data();
 
 		/**
-		 * Plugin update checker
+		 * Plugin update checker - DISABLED
+		 * Auto-updates have been disabled as per requirements
 		 */
-		$plugin_update = new Plugin_Update();
-		add_filter( 'plugins_api', array( $plugin_update, 'info' ), 20, 3 );
-		add_filter( 'pre_set_site_transient_update_plugins', array( $plugin_update, 'update' ) );
+		// $plugin_update = new Plugin_Update();
+		// add_filter( 'plugins_api', array( $plugin_update, 'info' ), 20, 3 );
+		// add_filter( 'pre_set_site_transient_update_plugins', array( $plugin_update, 'update' ) );
 
 		/**
 		 * TODO: Move to license class
@@ -305,7 +306,28 @@ final class Plugin {
 		wp_register_script( 'plugin_pdf', 'https://printjs-4de6.kxcdn.com/print.min.js', array(), MYD_CURRENT_VERSION, true );
 		wp_register_style( 'plugin_pdf_css', 'https://printjs-4de6.kxcdn.com/print.min.css', array(), MYD_CURRENT_VERSION, true );
 
-		wp_register_script( 'myd-create-order', MYD_PLUGN_URL . 'assets/js/order.min.js', array(), MYD_CURRENT_VERSION, true );
+		// jQuery Mask Plugin para máscaras de teléfono
+		wp_register_script( 'jquery-mask', MYD_PLUGN_URL . 'assets/lib/js/jquery.mask.js', array( 'jquery' ), '1.14.16', true );
+
+		// Inicializar jQuery Mask para todos los campos con data-mask
+		$mask_init_script = "
+		jQuery(document).ready(function($) {
+			// Inicializar máscara para todos los campos con data-mask
+			$('[data-mask]').each(function() {
+				var maskPattern = $(this).attr('data-mask');
+				var maskReverse = $(this).attr('data-mask-reverse') === 'true';
+
+				if (maskPattern && maskPattern !== '') {
+					$(this).mask(maskPattern, {
+						reverse: maskReverse
+					});
+				}
+			});
+		});
+		";
+		wp_add_inline_script( 'jquery-mask', $mask_init_script );
+
+		wp_register_script( 'myd-create-order', MYD_PLUGN_URL . 'assets/js/order.min.js', array( 'jquery-mask' ), MYD_CURRENT_VERSION, true );
 		wp_localize_script(
 			'myd-create-order',
 			'ajax_object',

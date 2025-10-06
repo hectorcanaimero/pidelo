@@ -107,25 +107,11 @@ class Fdm_Track_Order {
 									</span>
 									<?php 
 								$order_total = get_post_meta( $postid, 'order_total', true );
-								
-								// Debug info
-								$conversion_enabled = Currency_Converter::is_conversion_enabled();
-								$rate = Currency_Converter::get_official_rate();
-								$option_value = get_option( 'myd-currency-conversion-enabled', 'NOT_SET' );
-								$conversion_display = '';
-								
+
 								if ( $order_total > 0 ) :
 									$conversion_display = Currency_Converter::get_conversion_display( $order_total, false );
-								endif;
-								if ( ! empty( $conversion_display ) ) :
-									echo $conversion_display;
-								else:
-									// Si no hay display, mostrar la conversión manual
-									if ( $conversion_enabled && $rate !== false && $order_total > 0 ) :
-										$vef_amount = floatval($order_total) * $rate;
-										echo '<div class="myd-currency-conversion">';
-										echo '<span class="myd-vef-price">Bs. ' . number_format($vef_amount, 2, ',', '.') . '</span>';
-										echo '</div>';
+									if ( ! empty( $conversion_display ) ) :
+										echo $conversion_display;
 									endif;
 								endif;
 								?>
