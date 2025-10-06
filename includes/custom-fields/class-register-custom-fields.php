@@ -483,6 +483,14 @@ class Register_Custom_Fields {
 					'custom_class' => '',
 					'required' => false,
 				],
+				'myd_order_payment_receipt' => [
+					'type' => 'payment-receipt',
+					'label' => __( 'Comprobante de Pago', 'myd-delivery-pro' ),
+					'id' => 'myd_order_payment_receipt',
+					'name' => 'order_payment_receipt',
+					'custom_class' => '',
+					'required' => false,
+				],
 			]
 		];
 

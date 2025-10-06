@@ -92,6 +92,14 @@ class Settings extends Admin_Settings {
 				]
 			],
 			[
+				'name' => 'myd-payment-receipt-required',
+				'option_group' => self::CONFIG_GROUP,
+				'args' => [
+					'sanitize_callback' => 'sanitize_text_field',
+					'default' => 'no',
+				]
+			],
+			[
 				'name' => 'fdm-principal-color',
 				'option_group' => self::CONFIG_GROUP,
 				'args' => [

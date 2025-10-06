@@ -336,9 +336,12 @@ final class Plugin {
 				'order_nonce' => wp_create_nonce( 'myd-create-order' ),
 			)
 		);
-		
+
 		// Agregar mydStoreInfo siempre que se registre el script
 		wp_add_inline_script( 'myd-create-order', $this->get_store_info_js(), 'before' );
+
+		// Register payment receipt upload handler
+		wp_register_script( 'myd-payment-receipt', MYD_PLUGN_URL . 'assets/js/payment-receipt.js', array( 'myd-create-order' ), MYD_CURRENT_VERSION, true );
 
 		wp_register_style( 'myd-delivery-frontend', MYD_PLUGN_URL . 'assets/css/delivery-frontend.min.css', array(), MYD_CURRENT_VERSION );
 		wp_register_style( 'myd-order-panel-frontend', MYD_PLUGN_URL . 'assets/css/order-panel-frontend.min.css', array(), MYD_CURRENT_VERSION );

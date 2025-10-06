@@ -210,6 +210,30 @@ if ( ! defined( 'ABSPATH' ) ) {
 							<?php echo esc_html( $payment_status ); ?>
 						</div>
 
+						<?php
+						// Mostrar comprobante de pago si la funcionalidad está activa, existe y la orden está en estado 'new'
+						if ( get_option( 'myd-payment-receipt-required' ) === 'yes' ) :
+							$order_status = get_post_meta( $postid, 'order_status', true );
+							$payment_receipt_id = get_post_meta( $postid, 'order_payment_receipt', true );
+
+							if ( $order_status === 'new' && ! empty( $payment_receipt_id ) ) :
+								$receipt_url = wp_get_attachment_url( $payment_receipt_id );
+
+								if ( $receipt_url ) :
+							?>
+								<div class="fdm-order-list-items-customer">
+									<a href="<?php echo esc_url( $receipt_url ); ?>"
+									   target="_blank"
+									   style="display: inline-block; padding: 10px 20px; background: #0073aa; color: white; text-decoration: none; border-radius: 4px; font-weight: bold; margin-top: 10px;">
+										📋 <?php esc_html_e( 'Ver Comprobante de Pago', 'myd-delivery-pro' ); ?>
+									</a>
+								</div>
+							<?php
+								endif;
+							endif;
+						endif;
+						?>
+
 						<?php if ( ! empty( $change ) ) : ?>
 							<div class="fdm-order-list-items-customer">
 								<?php esc_html_e( 'Change for', 'myd-delivery-pro' ); ?>:

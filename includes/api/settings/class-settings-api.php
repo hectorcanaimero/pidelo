@@ -28,6 +28,7 @@ class Settings_Api {
 		'fdm-thousands-separator' => ',',
 		'fdm-payment-in-cash' => 'yes',
 		'fdm-payment-type' => '',
+		'myd-payment-receipt-required' => 'no',
 		
 		// Delivery settings
 		'fdm-estimate-time-delivery' => '30-45 minutes',

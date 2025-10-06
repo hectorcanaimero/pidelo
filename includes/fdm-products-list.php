@@ -297,8 +297,9 @@ class Fdm_products_show {
 	 */
 	public function fdm_list_products_html( $args = array() ) {
 		// Ya no es necesario agregar mydStoreInfo aquí, se hace globalmente en class-plugin.php
-		
+
 		\wp_enqueue_script( 'myd-create-order' );
+		\wp_enqueue_script( 'myd-payment-receipt' );
 		\wp_enqueue_style( 'myd-delivery-frontend' );
 
 		ob_start();

@@ -39,6 +39,37 @@ class Place_Payment {
 		\update_post_meta( $order_id, 'order_payment_method', \sanitize_text_field( $payment['method'] ?? '' ) );
 		\update_post_meta( $order_id, 'order_change', \sanitize_text_field( $payment['change'] ?? '' ) );
 
+		// Handle payment receipt file upload
+		if ( ! empty( $_FILES['payment_receipt'] ) && $_FILES['payment_receipt']['error'] === UPLOAD_ERR_OK ) {
+			require_once( ABSPATH . 'wp-admin/includes/file.php' );
+			require_once( ABSPATH . 'wp-admin/includes/media.php' );
+			require_once( ABSPATH . 'wp-admin/includes/image.php' );
+
+			$file = $_FILES['payment_receipt'];
+			$allowed_types = array( 'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'application/pdf' );
+
+			if ( in_array( $file['type'], $allowed_types ) ) {
+				$upload = \wp_handle_upload( $file, array( 'test_form' => false ) );
+
+				if ( ! isset( $upload['error'] ) && isset( $upload['file'] ) ) {
+					$attachment = array(
+						'post_mime_type' => $file['type'],
+						'post_title' => \sanitize_file_name( $file['name'] ),
+						'post_content' => '',
+						'post_status' => 'inherit'
+					);
+
+					$attachment_id = \wp_insert_attachment( $attachment, $upload['file'], $order_id );
+
+					if ( ! \is_wp_error( $attachment_id ) ) {
+						$attachment_data = \wp_generate_attachment_metadata( $attachment_id, $upload['file'] );
+						\wp_update_attachment_metadata( $attachment_id, $attachment_data );
+						\update_post_meta( $order_id, 'order_payment_receipt', $attachment_id );
+					}
+				}
+			}
+		}
+
 		$payment_error = array();
 		if ( $payment['type'] === 'payment-integration' ) {
 			$payment_error = \apply_filters( 'myd-delivery/order/validate-payment-integration', array(), $order_id );

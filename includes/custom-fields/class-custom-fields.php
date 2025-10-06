@@ -236,6 +236,9 @@ class Myd_Custom_Fields {
 			case 'order-note':
 				$input = $this->render_order_note( $field, $post_id, $value );
 				break;
+			case 'payment-receipt':
+				$input = $this->render_payment_receipt( $field, $post_id, $value );
+				break;
 		}
 
 		$label = new Label( $field );
@@ -385,7 +388,67 @@ class Myd_Custom_Fields {
 	}
 
 	/**
-	 * Render input type Text
+	 * Render payment receipt field
+	 *
+	 * @since 2.2.20
+	 * @param array $args
+	 */
+	public function render_payment_receipt( array $args, int $post_id, string $value = '' ) {
+		// Solo mostrar si la funcionalidad está activa
+		if ( get_option( 'myd-payment-receipt-required' ) !== 'yes' ) {
+			return '';
+		}
+
+		if ( empty( $value ) ) {
+			return '<p style="color: #666;">' . esc_html__( 'No se subió comprobante de pago', 'myd-delivery-pro' ) . '</p>';
+		}
+
+		$attachment_id = intval( $value );
+		$file_url = wp_get_attachment_url( $attachment_id );
+		$file_type = get_post_mime_type( $attachment_id );
+		$file_name = basename( get_attached_file( $attachment_id ) );
+
+		if ( ! $file_url ) {
+			return '<p style="color: #999;">' . esc_html__( 'Archivo de comprobante no encontrado', 'myd-delivery-pro' ) . '</p>';
+		}
+
+		$output = '<div class="myd-payment-receipt-wrapper" style="margin-top: 10px;">';
+
+		// Si es una imagen, mostrar preview
+		if ( strpos( $file_type, 'image' ) !== false ) {
+			$img_url = wp_get_attachment_image_url( $attachment_id, 'medium' );
+			$img_full_url = wp_get_attachment_image_url( $attachment_id, 'full' );
+
+			$output .= sprintf(
+				'<div style="margin-bottom: 10px;"><a href="%s" target="_blank"><img src="%s" style="max-width: 300px; height: auto; border: 1px solid #ddd; border-radius: 4px;" /></a></div>',
+				esc_url( $img_full_url ),
+				esc_url( $img_url )
+			);
+		}
+
+		// Botón de descarga
+		$output .= sprintf(
+			'<p><a href="%s" class="button button-secondary" download="%s" target="_blank"><span class="dashicons dashicons-download" style="vertical-align: middle;"></span> %s</a></p>',
+			esc_url( $file_url ),
+			esc_attr( $file_name ),
+			esc_html__( 'Descargar Comprobante', 'myd-delivery-pro' )
+		);
+
+		// Información del archivo
+		$output .= sprintf(
+			'<p style="color: #666; font-size: 12px;">%s: %s</p>',
+			esc_html__( 'Archivo', 'myd-delivery-pro' ),
+			esc_html( $file_name )
+		);
+
+		$output .= '<input type="hidden" name="' . esc_attr( $args['name'] ) . '" value="' . esc_attr( $value ) . '" />';
+		$output .= '</div>';
+
+		return $output;
+	}
+
+	/**
+	 * Render input type Checkbox
 	 *
 	 * @since 1.9.5
 	 * @param array $args

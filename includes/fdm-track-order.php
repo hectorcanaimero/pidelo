@@ -133,6 +133,39 @@ class Fdm_Track_Order {
 								<?php echo esc_html( $payment_status ); ?>
 							</div>
 
+							<?php
+							// Mostrar comprobante de pago si la funcionalidad está activa y existe
+							if ( get_option( 'myd-payment-receipt-required' ) === 'yes' ) :
+								$payment_receipt_id = get_post_meta( $postid, 'order_payment_receipt', true );
+								if ( ! empty( $payment_receipt_id ) ) :
+									$receipt_url = wp_get_attachment_url( $payment_receipt_id );
+									$receipt_type = get_post_mime_type( $payment_receipt_id );
+									if ( $receipt_url ) :
+								?>
+									<div class="fdm-order-list-items-customer" style="margin-top: 15px;">
+										<strong><?php esc_html_e( 'Comprobante de Pago', 'myd-delivery-pro' ); ?>:</strong>
+										<div style="margin-top: 10px;">
+											<?php if ( strpos( $receipt_type, 'image' ) !== false ) : ?>
+												<a href="<?php echo esc_url( $receipt_url ); ?>" target="_blank" style="display: block; margin-bottom: 10px;">
+													<img src="<?php echo esc_url( wp_get_attachment_image_url( $payment_receipt_id, 'medium' ) ); ?>"
+														 style="max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 4px;"
+														 alt="<?php esc_attr_e( 'Comprobante de Pago', 'myd-delivery-pro' ); ?>" />
+												</a>
+											<?php endif; ?>
+											<a href="<?php echo esc_url( $receipt_url ); ?>"
+											   target="_blank"
+											   download
+											   style="display: inline-block; padding: 8px 16px; background: #0073aa; color: white; text-decoration: none; border-radius: 4px; font-size: 14px;">
+												📥 <?php esc_html_e( 'Descargar Comprobante', 'myd-delivery-pro' ); ?>
+											</a>
+										</div>
+									</div>
+								<?php
+									endif;
+								endif;
+							endif;
+							?>
+
 							<?php if ( ! empty( $change ) ) : ?>
 								<div class="fdm-order-list-items-customer">
 									<?php esc_html_e( 'Change for', 'myd-delivery-pro' ); ?>:

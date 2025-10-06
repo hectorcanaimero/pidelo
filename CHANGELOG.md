@@ -7,6 +7,33 @@ y este proyecto se adhiere al [Versionado Sem�ntico](https://semver.org/lang/e
 
 ---
 
+## [2.2.21] - 2025-10-06
+
+### Añadido
+
+- **Sistema de Comprobantes de Pago** - Nueva funcionalidad completa para gestión de comprobantes
+  - **Configuración activable/desactivable**: Checkbox en `Settings → Payment` para habilitar la funcionalidad
+  - **Campo de subida en checkout**: Input de tipo file para subir comprobante (imagen o PDF)
+  - **Validación obligatoria**: Cuando está activo, el comprobante es REQUERIDO para completar el pedido
+  - **Procesamiento backend**: Almacenamiento automático en biblioteca de medios de WordPress
+  - **Vista en panel de órdenes**: Botón "Ver Comprobante de Pago" para órdenes con estado 'new'
+  - **Vista en tracking del cliente**: Cliente puede ver y descargar su comprobante subido
+  - **Vista en admin (metabox)**: Preview de imagen con botón de descarga en edición de orden
+  - **JavaScript personalizado**: `payment-receipt.js` con override de `MydOrder.placePayment()` para soporte de FormData
+  - **Traducciones**: Todos los textos en español
+  - **Tipos de archivo soportados**: Imágenes (JPG, PNG, GIF) y PDFs
+  - Archivos modificados:
+    - `templates/admin/settings-tabs/payment/tab-payment.php` - Configuración
+    - `templates/cart/cart-payment.php` - Campo de subida
+    - `includes/ajax/class-place-payment.php` - Procesamiento de archivo
+    - `includes/custom-fields/class-register-custom-fields.php` - Registro de campo
+    - `includes/custom-fields/class-custom-fields.php` - Renderizado personalizado
+    - `templates/order/order-content.php` - Vista en panel de órdenes
+    - `includes/fdm-track-order.php` - Vista en tracking
+    - `assets/js/payment-receipt.js` - JavaScript handler (nuevo archivo)
+    - `includes/class-plugin.php` - Registro de script
+    - `includes/fdm-products-list.php` - Enqueue de script
+
 ## [2.2.20] - 2025-10-02
 
 ### Añadido

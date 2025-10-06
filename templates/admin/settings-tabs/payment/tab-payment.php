@@ -112,6 +112,28 @@ $saved_currency_code = Myd_Currency::get_currency_code();
 					</p>
 				</td>
 			</tr>
+			<tr>
+				<th scope="row">
+					<label for="myd-payment-receipt-required">
+						<?php esc_html_e( 'Comprobante de Pago', 'myd-delivery-pro' ); ?>
+					</label>
+				</th>
+				<td>
+					<input
+						type="checkbox"
+						name="myd-payment-receipt-required"
+						id="myd-payment-receipt-required"
+						value="yes"
+						<?php checked( get_option( 'myd-payment-receipt-required' ), 'yes' ); ?>
+					>
+					<label for="myd-payment-receipt-required">
+						<?php esc_html_e( 'Requerir comprobante de pago obligatorio en el checkout', 'myd-delivery-pro' ); ?>
+					</label>
+					<p class="description">
+						<?php esc_html_e( 'Si está activado, el cliente deberá subir obligatoriamente un comprobante de pago al hacer el pedido. Si está desactivado, el campo de comprobante estará oculto.', 'myd-delivery-pro' ); ?>
+					</p>
+				</td>
+			</tr>
 		</tbody>
 	</table>
 

@@ -86,6 +86,26 @@ $online_payment_enabled = defined( 'SUMUPMYD_CURRENT_VERSION' );
 					data-mask="###.###.###,##"
 					data-mask-reverse="true"
 				>
+
+				<?php if ( get_option( 'myd-payment-receipt-required' ) === 'yes' ) : ?>
+					<label
+						class="myd-cart__checkout-label"
+						for="input-payment-receipt"
+					>
+						<?php esc_html_e( 'Comprobante de Pago', 'myd-delivery-pro' ); ?> <span style="color: red;">*</span>
+					</label>
+					<input
+						type="file"
+						class="myd-cart__checkout-input"
+						id="input-payment-receipt"
+						name="input-payment-receipt"
+						accept="image/*,.pdf"
+						required
+					>
+					<p style="font-size: 0.85em; color: #666;">
+						<?php esc_html_e( 'Sube tu comprobante de pago para verificación (obligatorio)', 'myd-delivery-pro' ); ?>
+					</p>
+				<?php endif; ?>
 			</details>
 		</div>
 	</div>
