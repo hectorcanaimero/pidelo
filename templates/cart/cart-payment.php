@@ -88,23 +88,30 @@ $online_payment_enabled = defined( 'SUMUPMYD_CURRENT_VERSION' );
 				>
 
 				<?php if ( get_option( 'myd-payment-receipt-required' ) === 'yes' ) : ?>
-					<label
-						class="myd-cart__checkout-label"
-						for="input-payment-receipt"
-					>
-						<?php esc_html_e( 'Comprobante de Pago', 'myd-delivery-pro' ); ?> <span style="color: red;">*</span>
-					</label>
-					<input
-						type="file"
-						class="myd-cart__checkout-input"
-						id="input-payment-receipt"
-						name="input-payment-receipt"
-						accept="image/*,.pdf"
-						required
-					>
-					<p style="font-size: 0.85em; color: #666;">
-						<?php esc_html_e( 'Sube tu comprobante de pago para verificación (obligatorio)', 'myd-delivery-pro' ); ?>
-					</p>
+					<div class="myd-cart__payment-receipt-wrapper" style="margin-top: 15px; padding: 15px; background: #f9f9f9; border-radius: 5px; border-left: 3px solid #ff6b6b;">
+						<label
+							class="myd-cart__checkout-label"
+							for="input-payment-receipt"
+							style="display: block; font-weight: 600; margin-bottom: 8px;"
+						>
+							<?php esc_html_e( 'Comprobante de Pago', 'myd-delivery-pro' ); ?>
+							<span style="color: #ff6b6b; font-weight: bold;">*</span>
+							<span style="color: #ff6b6b; font-size: 0.9em; font-weight: normal;"><?php esc_html_e( '(Obligatorio)', 'myd-delivery-pro' ); ?></span>
+						</label>
+						<input
+							type="file"
+							class="myd-cart__checkout-input"
+							id="input-payment-receipt"
+							name="input-payment-receipt"
+							accept="image/jpeg,image/jpg,image/png,image/gif,application/pdf"
+							required
+							aria-required="true"
+							style="margin-bottom: 8px;"
+						>
+						<p style="font-size: 0.85em; color: #666; margin: 0;">
+							<?php esc_html_e( '📎 Adjunta tu comprobante de pago (JPG, PNG, GIF o PDF)', 'myd-delivery-pro' ); ?>
+						</p>
+					</div>
 				<?php endif; ?>
 			</details>
 		</div>

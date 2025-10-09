@@ -29,10 +29,25 @@
             // Get the payment receipt file input
             const fileInput = document.getElementById('input-payment-receipt');
             const hasFile = fileInput && fileInput.files && fileInput.files.length > 0;
+            const isFileInputVisible = fileInput && fileInput.offsetParent !== null;
 
             console.log('Has file:', hasFile);
+            console.log('File input visible:', isFileInputVisible);
 
-            // If no file, use original method
+            // Validación: Si el campo de comprobante está visible (obligatorio) y no hay archivo
+            if (isFileInputVisible && !hasFile) {
+                console.log('Validation failed: Payment receipt is required');
+                window.Myd.removeLoadingAnimation('.myd-cart__button-text');
+                window.Myd.notificationBar('error', 'El comprobante de pago es obligatorio. Por favor, adjunta tu comprobante para continuar.');
+
+                // Hacer scroll al campo y hacer focus
+                fileInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                fileInput.focus();
+
+                return false;
+            }
+
+            // If no file (but not required), use original method
             if (!hasFile) {
                 console.log('No file, using original method');
                 return originalPlacePayment();
@@ -67,10 +82,12 @@
 
                 const responseData = await response.json();
 
-                if (responseData.error) {
+                // Manejar respuesta de error del backend (incluyendo validación de comprobante)
+                if (responseData.success === false || responseData.error) {
                     window.Myd.removeLoadingAnimation('.myd-cart__button-text');
-                    window.Myd.notificationBar('error', responseData.error.error_message || responseData.error[0]);
-                    throw new Error(responseData.error.error_message || responseData.error[0]);
+                    const errorMessage = responseData.data?.message || responseData.error?.error_message || responseData.error?.[0] || 'Error al procesar el pago';
+                    window.Myd.notificationBar('error', errorMessage);
+                    throw new Error(errorMessage);
                 }
 
                 const finishedOrderNumber = document.getElementById('finished-order-number');

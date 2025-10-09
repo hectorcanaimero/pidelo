@@ -35,6 +35,24 @@ class Place_Payment {
 		$order_id = (int) $data['id'];
 		$payment = $data['payment'];
 
+		// Validar comprobante de pago obligatorio
+		$payment_receipt_required = \get_option( 'myd-payment-receipt-required' ) === 'yes';
+		$payment_type = $payment['type'] ?? '';
+
+		// Solo validar si es pago "upon-delivery" (no aplica para payment-integration)
+		if ( $payment_receipt_required && $payment_type === 'upon-delivery' ) {
+			$has_file = ! empty( $_FILES['payment_receipt'] ) && $_FILES['payment_receipt']['error'] === UPLOAD_ERR_OK;
+
+			if ( ! $has_file ) {
+				\wp_send_json_error(
+					array(
+						'message' => \esc_html__( 'El comprobante de pago es obligatorio. Por favor, adjunta tu comprobante para continuar.', 'myd-delivery-pro' ),
+					)
+				);
+				\wp_die();
+			}
+		}
+
 		\update_post_meta( $order_id, 'order_payment_type', \sanitize_text_field( $payment['type'] ?? '' ) );
 		\update_post_meta( $order_id, 'order_payment_method', \sanitize_text_field( $payment['method'] ?? '' ) );
 		\update_post_meta( $order_id, 'order_change', \sanitize_text_field( $payment['change'] ?? '' ) );
