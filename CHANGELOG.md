@@ -7,6 +7,107 @@ y este proyecto se adhiere al [Versionado Sem�ntico](https://semver.org/lang/e
 
 ---
 
+## [2.3.0] - 2025-10-11
+
+### Añadido
+
+- **Sistema Automatizador de Instancias Evolution API** - Integración completa con Evolution API para mensajes automáticos de WhatsApp
+  - **Auto-Setup de Instancias**: Sistema automatizado que crea, conecta y verifica instancias de WhatsApp sin intervención manual
+  - **Flujo Automatizado**: Usuario → Sistema crea instancia → Genera QR → Usuario escanea → Sistema detecta conexión → Listo
+  - **Gestión Inteligente de Instancias**:
+    - `Instance_Manager` - Clase orquestadora del proceso completo
+    - Verificación automática de instancias existentes (no duplica)
+    - Reconexión automática si se desconecta
+    - Reset de instancia con un solo clic
+  - **Interfaz de Usuario Mejorada**:
+    - Banner de estado en tiempo real (🟢 Conectado / 🔴 Desconectado)
+    - Botón "Conectar WhatsApp" que inicia el flujo automático
+    - Generación automática de código QR
+    - Sección QR con instrucciones paso a paso
+    - Polling inteligente (verifica conexión cada 5 segundos)
+    - Detección automática cuando se escanea el QR
+    - Feedback visual en tiempo real
+  - **Configuración Simplificada**:
+    - Credenciales globales de Evolution API (URL y API Key hardcodeadas)
+    - Nombre de instancia generado automáticamente desde el nombre de la tienda
+    - Código de país configurable para formato de teléfonos
+    - Sistema de eventos automáticos con checkboxes
+    - Templates de mensajes personalizables por evento
+  - **Mensajes Transaccionales Automáticos**:
+    - Pedido Nuevo (`order_new`)
+    - Pedido Confirmado (`order_confirmed`)
+    - En Preparación (`order_in_process`)
+    - En Camino / Delivery (`order_in_delivery`)
+    - Pedido Completado (`order_done`)
+  - **Formato de Teléfono Inteligente**:
+    - Remoción automática del 0 inicial (11 dígitos → 10 dígitos)
+    - Agregado automático de código de país
+    - Ejemplo: `031999999999` → `5531999999999` (Brasil)
+  - **Sistema de Logs**:
+    - Registro completo de mensajes enviados
+    - Meta de orden `_evolution_logs` con historial
+    - Meta `_last_whatsapp_sent` con timestamp del último envío
+    - Logs en error_log para debugging
+  - **Endpoints AJAX Nuevos**:
+    - `myd_evolution_auto_setup` - Ejecuta configuración automática completa
+    - `myd_evolution_check_status` - Verifica estado en tiempo real
+    - `myd_evolution_reconnect` - Reconectar instancia
+    - `myd_evolution_reset` - Resetear instancia
+    - `myd_evolution_test_connection` - Test de conexión
+    - `myd_evolution_send_manual` - Envío manual (removido del frontend)
+  - **Archivos Nuevos**:
+    - `includes/integrations/evolution-api/class-instance-manager.php` - Gestor de instancias
+    - `includes/integrations/evolution-api/class-evolution-client.php` - Cliente HTTP
+    - `includes/integrations/evolution-api/class-whatsapp-service.php` - Servicio de mensajería
+    - `includes/integrations/evolution-api/class-logger.php` - Sistema de logs
+    - `includes/integrations/evolution-api/class-order-hooks.php` - Hooks automáticos
+    - `includes/ajax/class-evolution-ajax.php` - Manejadores AJAX
+    - `templates/admin/settings-tabs/evolution-api/tab-evolution-api.php` - UI de configuración
+    - `assets/js/evolution-admin.js` - JavaScript para admin
+    - `assets/css/evolution-api.css` - Estilos para UI
+  - **Seguridad Implementada**:
+    - Nonces de WordPress en todos los endpoints AJAX
+    - Validación de capabilities (`manage_options`, `edit_posts`)
+    - Sanitización de inputs con funciones de WordPress
+    - API Key nunca expuesta en frontend
+    - Prevención de duplicados (ventana de 5 minutos)
+
+### Modificado
+
+- **Carga de Assets Mejorada**:
+  - Verificación doble por screen ID y parámetro GET para garantizar carga correcta
+  - Assets solo se cargan en página de settings (optimización)
+- **Integración con Plugin Principal**:
+  - Registro automático de todas las clases de Evolution API
+  - Inicialización condicional (solo si está habilitado)
+  - Compatible con el sistema de WhatsApp existente (wa.me)
+
+### Removido
+
+- **Botón "Enviar WhatsApp" del Panel de Pedidos Frontend**:
+  - Eliminado del shortcode de pedidos (`templates/order/panel.php`)
+  - Funcionalidad ahora es 100% automática en el backend
+  - Sin intervención manual requerida
+
+### Corregido
+
+- **Formato de teléfono corregido**: Ahora remueve el 0 inicial antes de enviar a WhatsApp
+- **Screen ID corregido**: `myd-settings` → `myd-delivery-settings` para carga correcta de assets
+- **Error 500 en AJAX**: Agregado include de `class-instance-manager.php` que faltaba
+
+### Técnico
+
+- **Versión Evolution API**: Compatible con v2.2.3
+- **URL Evolution API**: `https://evo.guria.lat`
+- **Endpoints utilizados**:
+  - `POST /instance/create` - Crear instancia
+  - `GET /instance/connect/{name}` - Obtener QR
+  - `GET /instance/fetchInstances` - Listar instancias
+  - `POST /message/sendText/{instance}` - Enviar mensaje
+  - `DELETE /instance/logout/{name}` - Desconectar
+
+---
+
 ## [2.2.21] - 2025-10-06
 
 ### Añadido
