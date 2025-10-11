@@ -1,0 +1,429 @@
+/**
+ * Evolution API Styles
+ *
+ * Estilos para integración Evolution API WhatsApp
+ *
+ * @package MydPro
+ * @since 2.3.0
+ */
+
+/* ==========================================================================
+   Botón de WhatsApp en Panel de Órdenes
+   ========================================================================== */
+
+.myd-evolution-send-btn-wrapper {
+	display: inline-block;
+	position: relative;
+	margin-left: 10px;
+}
+
+.myd-evolution-send-btn {
+	background: #25D366;
+	color: white;
+	border: none;
+	padding: 10px 16px;
+	border-radius: 4px;
+	cursor: pointer;
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 14px;
+	font-weight: 500;
+	transition: all 0.3s ease;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.myd-evolution-send-btn:hover {
+	background: #128C7E;
+	transform: translateY(-1px);
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.myd-evolution-send-btn:active {
+	transform: translateY(0);
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.myd-evolution-send-btn:disabled {
+	background: #ccc;
+	cursor: not-allowed;
+	transform: none;
+	box-shadow: none;
+}
+
+.myd-evolution-send-btn svg {
+	width: 16px;
+	height: 16px;
+	flex-shrink: 0;
+}
+
+/* Estado: Enviando (Loading) */
+.myd-evolution-send-btn.sending {
+	opacity: 0.7;
+	pointer-events: none;
+}
+
+.myd-evolution-send-btn.sending::after {
+	content: "";
+	width: 14px;
+	height: 14px;
+	border: 2px solid white;
+	border-top-color: transparent;
+	border-radius: 50%;
+	animation: spin 0.6s linear infinite;
+	margin-left: 8px;
+}
+
+@keyframes spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+/* Badge de "Enviado" */
+.evolution-sent-badge {
+	display: inline-block;
+	margin-left: 10px;
+	color: #28a745;
+	font-size: 12px;
+	font-weight: 500;
+	padding: 4px 8px;
+	background: #d4edda;
+	border-radius: 3px;
+	border: 1px solid #c3e6cb;
+}
+
+.evolution-sent-badge::before {
+	content: "✓ ";
+	font-weight: bold;
+}
+
+/* Mensaje de Error */
+.evolution-error-message {
+	display: block;
+	color: #dc3545;
+	font-size: 12px;
+	margin-top: 5px;
+	padding: 4px 8px;
+	background: #f8d7da;
+	border-radius: 3px;
+	border: 1px solid #f5c6cb;
+}
+
+.evolution-error-message::before {
+	content: "✗ ";
+	font-weight: bold;
+}
+
+/* ==========================================================================
+   Settings Page - Evolution API Tab
+   ========================================================================== */
+
+/* Banner de Estado de Conexión */
+.myd-evolution-status-banner {
+	background: #f5f5f5;
+	border-left: 4px solid #ddd;
+	padding: 15px 20px;
+	margin: 20px 0;
+	border-radius: 4px;
+	transition: border-color 0.3s ease;
+}
+
+.myd-evolution-status-banner.connected {
+	border-left-color: #28a745;
+	background: #f0f9f4;
+}
+
+.status-indicator {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	font-weight: 500;
+	font-size: 14px;
+}
+
+.status-dot {
+	width: 12px;
+	height: 12px;
+	border-radius: 50%;
+	background: #dc3545;
+	display: inline-block;
+	transition: background 0.3s ease;
+}
+
+.status-indicator.connected .status-dot {
+	background: #28a745;
+	animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+	0%, 100% {
+		opacity: 1;
+		transform: scale(1);
+	}
+	50% {
+		opacity: 0.6;
+		transform: scale(1.1);
+	}
+}
+
+/* Toggle Switch */
+.myd-toggle-switch {
+	position: relative;
+	display: inline-block;
+	width: 50px;
+	height: 24px;
+	vertical-align: middle;
+}
+
+.myd-toggle-switch input {
+	opacity: 0;
+	width: 0;
+	height: 0;
+}
+
+.slider {
+	position: absolute;
+	cursor: pointer;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: #ccc;
+	transition: .4s;
+	border-radius: 24px;
+}
+
+.slider:before {
+	position: absolute;
+	content: "";
+	height: 16px;
+	width: 16px;
+	left: 4px;
+	bottom: 4px;
+	background-color: white;
+	transition: .4s;
+	border-radius: 50%;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+input:checked + .slider {
+	background-color: #2196F3;
+}
+
+input:checked + .slider:before {
+	transform: translateX(26px);
+}
+
+input:focus + .slider {
+	box-shadow: 0 0 1px #2196F3;
+}
+
+/* Templates Section */
+.myd-templates-section {
+	margin-top: 20px;
+}
+
+.template-item {
+	margin-bottom: 25px;
+	padding-bottom: 25px;
+	border-bottom: 1px solid #e0e0e0;
+}
+
+.template-item:last-child {
+	border-bottom: none;
+}
+
+.template-item h4 {
+	margin-bottom: 10px;
+	color: #23282d;
+	font-size: 14px;
+	font-weight: 600;
+}
+
+.template-item textarea {
+	font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
+	font-size: 13px;
+	line-height: 1.6;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	padding: 10px;
+}
+
+.template-item textarea:focus {
+	border-color: #2196F3;
+	box-shadow: 0 0 0 1px #2196F3;
+	outline: none;
+}
+
+/* Tokens Info Box */
+.myd-tokens-info {
+	background: #fff;
+	border: 1px solid #ddd;
+	padding: 20px;
+	margin-top: 25px;
+	border-radius: 4px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.myd-tokens-info h4 {
+	margin-top: 0;
+	margin-bottom: 15px;
+	color: #23282d;
+	font-size: 14px;
+	font-weight: 600;
+}
+
+.myd-tokens-info ul {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	column-count: 2;
+	column-gap: 30px;
+}
+
+@media (max-width: 782px) {
+	.myd-tokens-info ul {
+		column-count: 1;
+	}
+}
+
+.myd-tokens-info li {
+	padding: 6px 0;
+	break-inside: avoid;
+	font-size: 13px;
+}
+
+.myd-tokens-info code {
+	background: #f0f0f0;
+	padding: 3px 8px;
+	border-radius: 3px;
+	font-weight: 600;
+	color: #0073aa;
+	font-size: 12px;
+}
+
+/* Instancias List */
+#instances-list {
+	padding: 15px;
+	background: #f9f9f9;
+	border-radius: 4px;
+	border: 1px solid #ddd;
+	max-height: 250px;
+	overflow-y: auto;
+	margin-top: 10px;
+}
+
+#instances-list:empty {
+	display: none;
+}
+
+#instances-list .instance-item {
+	padding: 12px;
+	margin: 8px 0;
+	background: white;
+	border: 1px solid #ddd;
+	border-radius: 4px;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+#instances-list .instance-item:hover {
+	background: #e8f4f8;
+	border-color: #2196F3;
+	transform: translateX(2px);
+}
+
+#instances-list .instance-item.open {
+	border-left: 4px solid #28a745;
+}
+
+#instances-list .instance-item.close {
+	border-left: 4px solid #dc3545;
+	opacity: 0.6;
+}
+
+#instances-list .instance-item .instance-name {
+	font-weight: 600;
+	color: #23282d;
+}
+
+#instances-list .instance-item .instance-status {
+	font-size: 11px;
+	padding: 3px 8px;
+	border-radius: 3px;
+	text-transform: uppercase;
+	font-weight: 600;
+}
+
+#instances-list .instance-item.open .instance-status {
+	background: #d4edda;
+	color: #155724;
+}
+
+#instances-list .instance-item.close .instance-status {
+	background: #f8d7da;
+	color: #721c24;
+}
+
+/* Test Connection Result */
+#test-connection-result {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 13px;
+	font-weight: 500;
+}
+
+#test-connection-result .dashicons {
+	font-size: 18px;
+	width: 18px;
+	height: 18px;
+}
+
+#test-connection-result.success {
+	color: #28a745;
+}
+
+#test-connection-result.error {
+	color: #dc3545;
+}
+
+/* Loading Spinner for Buttons */
+.button .spinner {
+	display: inline-block;
+	width: 14px;
+	height: 14px;
+	border: 2px solid rgba(0, 0, 0, 0.1);
+	border-top-color: #23282d;
+	border-radius: 50%;
+	animation: spin 0.6s linear infinite;
+	vertical-align: middle;
+	margin-left: 8px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 782px) {
+	.myd-evolution-send-btn {
+		padding: 8px 12px;
+		font-size: 13px;
+	}
+
+	.myd-evolution-send-btn svg {
+		width: 14px;
+		height: 14px;
+	}
+
+	.evolution-sent-badge {
+		display: block;
+		margin-left: 0;
+		margin-top: 8px;
+	}
+
+	.myd-evolution-status-banner {
+		padding: 12px 15px;
+	}
+}

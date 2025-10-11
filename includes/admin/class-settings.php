@@ -384,6 +384,80 @@ class Settings extends Admin_Settings {
 					'default' => '3',
 				],
 			],
+			// Evolution API Settings
+			[
+				'name' => 'myd-evolution-api-enabled',
+				'option_group' => self::CONFIG_GROUP,
+				'args' => [
+					'sanitize_callback' => 'sanitize_text_field',
+					'default' => 'no',
+				],
+			],
+			[
+				'name' => 'myd-evolution-phone-country-code',
+				'option_group' => self::CONFIG_GROUP,
+				'args' => [
+					'sanitize_callback' => 'sanitize_text_field',
+					'default' => '55', // Brasil por defecto
+				],
+			],
+			[
+				'name' => 'myd-evolution-auto-send-events',
+				'option_group' => self::CONFIG_GROUP,
+				'args' => [
+					'default' => [],
+				],
+			],
+			// Templates Evolution API por evento
+			[
+				'name' => 'myd-evolution-template-order-created',
+				'option_group' => self::CONFIG_GROUP,
+				'args' => [
+					'default' => '¡Hola {customer-name}! ' . PHP_EOL .
+					'Tu pedido #{order-number} ha sido recibido correctamente.' . PHP_EOL . PHP_EOL .
+					'Total: {order-total}' . PHP_EOL . PHP_EOL .
+					'Seguimiento: {order-track-page}',
+				],
+			],
+			[
+				'name' => 'myd-evolution-template-order-confirmed',
+				'option_group' => self::CONFIG_GROUP,
+				'args' => [
+					'default' => '¡Hola {customer-name}! ' . PHP_EOL .
+					'Tu pedido #{order-number} ha sido confirmado.' . PHP_EOL . PHP_EOL .
+					'Estamos preparando todo para ti.' . PHP_EOL . PHP_EOL .
+					'Seguimiento: {order-track-page}',
+				],
+			],
+			[
+				'name' => 'myd-evolution-template-order-in-process',
+				'option_group' => self::CONFIG_GROUP,
+				'args' => [
+					'default' => '¡Hola {customer-name}! ' . PHP_EOL .
+					'Tu pedido #{order-number} está siendo preparado.' . PHP_EOL . PHP_EOL .
+					'Pronto estará listo.' . PHP_EOL . PHP_EOL .
+					'Seguimiento: {order-track-page}',
+				],
+			],
+			[
+				'name' => 'myd-evolution-template-order-in-delivery',
+				'option_group' => self::CONFIG_GROUP,
+				'args' => [
+					'default' => '¡Hola {customer-name}! ' . PHP_EOL .
+					'Tu pedido #{order-number} está en camino.' . PHP_EOL . PHP_EOL .
+					'Llegará pronto a tu dirección.' . PHP_EOL . PHP_EOL .
+					'Seguimiento: {order-track-page}',
+				],
+			],
+			[
+				'name' => 'myd-evolution-template-order-completed',
+				'option_group' => self::CONFIG_GROUP,
+				'args' => [
+					'default' => '¡Gracias {customer-name}! ' . PHP_EOL .
+					'Tu pedido #{order-number} ha sido completado.' . PHP_EOL . PHP_EOL .
+					'Esperamos que lo disfrutes. ¡Vuelve pronto!',
+				],
+			],
 		];
 	}
 }

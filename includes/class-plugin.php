@@ -13,6 +13,8 @@ use MydPro\Includes\Custom_Fields\Register_Custom_Fields;
 use MydPro\Includes\Ajax\Update_Cart;
 use MydPro\Includes\Ajax\Create_Draft_Order;
 use MydPro\Includes\Ajax\Place_Payment;
+use MydPro\Includes\Ajax\Evolution_Ajax;
+use MydPro\Includes\Integrations\Evolution_Api\Order_Hooks;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -166,6 +168,12 @@ final class Plugin {
 		new Place_Payment();
 		new Ajax\Customer_Details();
 
+		// Evolution API Integration
+		if ( get_option( 'myd-evolution-api-enabled' ) === 'yes' ) {
+			new Ajax\Evolution_Ajax();
+			new Integrations\Evolution_Api\Order_Hooks();
+		}
+
 		// Initialize API endpoints
 		new Api\Products\Products_Api();
 		new Api\Orders\Orders_Api();
@@ -266,6 +274,15 @@ final class Plugin {
 		include_once MYD_PLUGIN_PATH . 'includes/ajax/class-create-draft-order.php';
 		include_once MYD_PLUGIN_PATH . 'includes/ajax/class-place-payment.php';
 		include_once MYD_PLUGIN_PATH . 'includes/ajax/class-customer-details.php';
+
+		// Evolution API Integration
+		include_once MYD_PLUGIN_PATH . 'includes/integrations/evolution-api/class-evolution-client.php';
+		include_once MYD_PLUGIN_PATH . 'includes/integrations/evolution-api/class-whatsapp-service.php';
+		include_once MYD_PLUGIN_PATH . 'includes/integrations/evolution-api/class-logger.php';
+		include_once MYD_PLUGIN_PATH . 'includes/integrations/evolution-api/class-order-hooks.php';
+		include_once MYD_PLUGIN_PATH . 'includes/integrations/evolution-api/class-instance-manager.php';
+		include_once MYD_PLUGIN_PATH . 'includes/ajax/class-evolution-ajax.php';
+
 		include_once MYD_PLUGIN_PATH . 'includes/class-cart.php';
 		include_once MYD_PLUGIN_PATH . 'includes/class-create-draft-order.php';
 		include_once MYD_PLUGIN_PATH . 'includes/repositories/class-coupon-repository.php';
@@ -294,6 +311,62 @@ final class Plugin {
 		wp_enqueue_style( 'myd-admin-style' );
 
 		wp_register_script( 'myd-chart-js', 'https://cdn.jsdelivr.net/npm/chart.js', array(), MYD_CURRENT_VERSION, true );
+
+		// Evolution API assets (cargar en página de settings)
+		$screen = get_current_screen();
+		$should_load = false;
+
+		// Verificar por screen ID o por parámetro GET
+		if ( $screen && $screen->id === 'mydelivery-orders_page_myd-delivery-settings' ) {
+			$should_load = true;
+		} elseif ( isset( $_GET['page'] ) && $_GET['page'] === 'myd-delivery-settings' ) {
+			$should_load = true;
+		}
+
+		if ( $should_load ) {
+			wp_register_script(
+				'myd-evolution-admin',
+				MYD_PLUGN_URL . 'assets/js/evolution-admin.js',
+				array( 'jquery' ),
+				MYD_CURRENT_VERSION,
+				true
+			);
+
+			wp_localize_script(
+				'myd-evolution-admin',
+				'mydEvolutionData',
+				array(
+					'ajaxurl' => admin_url( 'admin-ajax.php' ),
+					'nonce'   => wp_create_nonce( 'myd-evolution-send' ),
+					'i18n'    => array(
+						'testing'          => __( 'Testing...', 'myd-delivery-pro' ),
+						'connected'        => __( 'Connected', 'myd-delivery-pro' ),
+						'disconnected'     => __( 'Disconnected', 'myd-delivery-pro' ),
+						'connectionError'  => __( 'Connection error', 'myd-delivery-pro' ),
+						'confirmSend'      => __( 'Send WhatsApp message to customer?', 'myd-delivery-pro' ),
+						'sentNow'          => __( 'Sent now', 'myd-delivery-pro' ),
+						'sendError'        => __( 'Error sending message', 'myd-delivery-pro' ),
+						'creating'         => __( 'Creating...', 'myd-delivery-pro' ),
+						'creatingInstance' => __( 'Creating WhatsApp instance...', 'myd-delivery-pro' ),
+						'scanQr'           => __( 'Scan the QR code with your WhatsApp', 'myd-delivery-pro' ),
+						'qrError'          => __( 'Error loading QR code', 'myd-delivery-pro' ),
+						'confirmLogout'    => __( 'Disconnect WhatsApp instance?', 'myd-delivery-pro' ),
+						'disconnecting'    => __( 'Disconnecting...', 'myd-delivery-pro' ),
+						'clickToGenerate'  => __( 'Click "Generate QR" to start', 'myd-delivery-pro' ),
+					),
+				)
+			);
+
+			wp_enqueue_script( 'myd-evolution-admin' );
+
+			wp_register_style(
+				'myd-evolution-api',
+				MYD_PLUGN_URL . 'assets/css/evolution-api.css',
+				array(),
+				MYD_CURRENT_VERSION
+			);
+			wp_enqueue_style( 'myd-evolution-api' );
+		}
 	}
 
 	/**
@@ -363,12 +436,44 @@ final class Plugin {
 		);
 
 		wp_register_script( 'myd-order-list-ajax', MYD_PLUGN_URL . 'assets/js/order-list-ajax.min.js', array( 'jquery' ), MYD_CURRENT_VERSION, true );
-		
+
 		// Script personalizado para manejar impresión de órdenes
 		wp_add_inline_script( 'myd-orders-panel', $this->get_print_handler_js() );
-		
+
 		// Script mejorado para notificaciones de audio
 		wp_add_inline_script( 'myd-orders-panel', $this->get_enhanced_notification_js() );
+
+		// Evolution API assets para panel de órdenes
+		if ( get_option( 'myd-evolution-api-enabled' ) === 'yes' ) {
+			wp_register_script(
+				'myd-evolution-panel',
+				MYD_PLUGN_URL . 'assets/js/evolution-admin.js',
+				array( 'jquery', 'myd-orders-panel' ),
+				MYD_CURRENT_VERSION,
+				true
+			);
+
+			wp_localize_script(
+				'myd-evolution-panel',
+				'mydEvolutionData',
+				array(
+					'ajaxurl' => admin_url( 'admin-ajax.php' ),
+					'nonce'   => wp_create_nonce( 'myd-evolution-send' ),
+					'i18n'    => array(
+						'confirmSend' => __( 'Send WhatsApp message to customer?', 'myd-delivery-pro' ),
+						'sentNow'     => __( 'Sent now', 'myd-delivery-pro' ),
+						'sendError'   => __( 'Error sending message', 'myd-delivery-pro' ),
+					),
+				)
+			);
+
+			wp_register_style(
+				'myd-evolution-panel-css',
+				MYD_PLUGN_URL . 'assets/css/evolution-api.css',
+				array(),
+				MYD_CURRENT_VERSION
+			);
+		}
 		
 		// Script mejorado para actualizaciones en tiempo real
 		wp_add_inline_script( 'myd-orders-panel', $this->get_realtime_updates_js() );

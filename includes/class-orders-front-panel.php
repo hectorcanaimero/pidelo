@@ -95,12 +95,18 @@ class Myd_Orders_Front_Panel {
 			
 			// Enqueue WordPress REST API script para autenticación
 			\wp_enqueue_script( 'wp-api' );
-			
+
 			// Localizar nonce para REST API
 			\wp_localize_script( 'myd-orders-panel', 'wpApiSettings', array(
 				'root' => \esc_url_raw( rest_url() ),
 				'nonce' => \wp_create_nonce( 'wp_rest' )
 			));
+
+			// Evolution API assets si está habilitado
+			if ( \get_option( 'myd-evolution-api-enabled' ) === 'yes' ) {
+				\wp_enqueue_script( 'myd-evolution-panel' );
+				\wp_enqueue_style( 'myd-evolution-panel-css' );
+			}
 
 			/**
 			 * Query orders

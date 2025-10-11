@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Responde siempre en español",
-      "Bash(gh issue create:*)"
+      "Bash(gh issue create:*)",
+      "Bash(cat:*)",
+      "Bash(php:*)"
     ],
     "deny": []
   }

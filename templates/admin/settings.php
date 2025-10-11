@@ -16,6 +16,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<a href="#tab_opening_hours" id="tab-opening-hours" class="nav-tab myd-tab" onclick="window.MydAdmin.mydChangeTab(event)"><?php esc_html_e( 'Opening Hours', 'myd-delivery-pro' ); ?></a>
 		<a href="#tab_order" id="tab-order" class="nav-tab myd-tab" onclick="window.MydAdmin.mydChangeTab(event)"><?php esc_html_e( 'Order', 'myd-delivery-pro' ); ?></a>
 		<a href="#tab_payment" id="tab-payment" class="nav-tab myd-tab" onclick="window.MydAdmin.mydChangeTab(event)"><?php esc_html_e( 'Payment', 'myd-delivery-pro' ); ?></a>
+		<a href="#tab_evolution_api" id="tab-evolution-api" class="nav-tab myd-tab" onclick="window.MydAdmin.mydChangeTab(event)">
+			<span class="dashicons dashicons-whatsapp" style="font-size: 16px; width: 16px; height: 16px; vertical-align: text-bottom;"></span>
+			<?php esc_html_e( 'Evolution API', 'myd-delivery-pro' ); ?>
+		</a>
 		<a href="#tab_print" id="tab-print" class="nav-tab myd-tab" onclick="window.MydAdmin.mydChangeTab(event)"><?php esc_html_e( 'Print', 'myd-delivery-pro' ); ?></a>
 		<a href="#tab_layout" id="tab-layout" class="nav-tab myd-tab" onclick="window.MydAdmin.mydChangeTab(event)"><?php esc_html_e( 'Layout', 'myd-delivery-pro' ); ?></a>
 		<a href="#tab_advanced" id="tab-advanced" class="nav-tab myd-tab" onclick="window.MydAdmin.mydChangeTab(event)"><?php esc_html_e( 'Advanced', 'myd-delivery-pro' ); ?></a>
@@ -29,6 +33,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<?php include_once MYD_PLUGIN_PATH . '/templates/admin/settings-tabs/opening-hours/tab-opening-hours.php'; ?>
 		<?php include_once MYD_PLUGIN_PATH . '/templates/admin/settings-tabs/order/tab-order.php'; ?>
 		<?php include_once MYD_PLUGIN_PATH . '/templates/admin/settings-tabs/payment/tab-payment.php'; ?>
+		<?php include_once MYD_PLUGIN_PATH . '/templates/admin/settings-tabs/evolution-api/tab-evolution-api.php'; ?>
 		<?php include_once MYD_PLUGIN_PATH . '/templates/admin/settings-tabs/print/tab-print.php'; ?>
 		<?php include_once MYD_PLUGIN_PATH . '/templates/admin/settings-tabs/layout/tab-layout.php'; ?>
 		<?php include_once MYD_PLUGIN_PATH . '/templates/admin/settings-tabs/advanced/tab-advanced.php'; ?>
