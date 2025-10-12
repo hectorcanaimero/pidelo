@@ -58,12 +58,48 @@ class Currency_Converter {
 	}
 
 	/**
+	 * Check if manual USD to VEF rate is being used
+	 *
+	 * @since 2.3.1
+	 * @return bool
+	 */
+	public static function is_manual_usd_rate_enabled() {
+		$enabled = get_option( 'myd-currency-manual-rate-usd-vef-enabled' );
+		$rate = get_option( 'myd-currency-manual-rate-usd-vef' );
+		return ( $enabled === 'yes' && ! empty( $rate ) && is_numeric( $rate ) && floatval( $rate ) > 0 );
+	}
+
+	/**
+	 * Check if manual EUR to VEF rate is being used
+	 *
+	 * @since 2.3.1
+	 * @return bool
+	 */
+	public static function is_manual_eur_rate_enabled() {
+		$enabled = get_option( 'myd-currency-manual-rate-eur-vef-enabled' );
+		$rate = get_option( 'myd-currency-manual-rate-eur-vef' );
+		return ( $enabled === 'yes' && ! empty( $rate ) && is_numeric( $rate ) && floatval( $rate ) > 0 );
+	}
+
+	/**
 	 * Get the official USD to VEF rate
+	 * Prioritizes manual rate if enabled, otherwise uses automatic rate from API
 	 *
 	 * @since 2.2.19
+	 * @updated 2.3.1 - Added manual rate support
 	 * @return float|false The USD to VEF rate or false on error
 	 */
 	public static function get_usd_vef_rate() {
+		// Check if manual rate is enabled
+		$manual_enabled = get_option( 'myd-currency-manual-rate-usd-vef-enabled' );
+		if ( $manual_enabled === 'yes' ) {
+			$manual_rate = get_option( 'myd-currency-manual-rate-usd-vef' );
+			if ( ! empty( $manual_rate ) && is_numeric( $manual_rate ) && floatval( $manual_rate ) > 0 ) {
+				return floatval( $manual_rate );
+			}
+		}
+
+		// Fall back to automatic rate from API
 		$rate = get_transient( self::TRANSIENT_KEY_USD_VEF );
 
 		if ( false === $rate ) {
@@ -82,11 +118,23 @@ class Currency_Converter {
 
 	/**
 	 * Get the official EUR to VEF rate
+	 * Prioritizes manual rate if enabled, otherwise uses automatic rate from API
 	 *
 	 * @since 2.2.20
+	 * @updated 2.3.1 - Added manual rate support
 	 * @return float|false The EUR to VEF rate or false on error
 	 */
 	public static function get_eur_vef_rate() {
+		// Check if manual rate is enabled
+		$manual_enabled = get_option( 'myd-currency-manual-rate-eur-vef-enabled' );
+		if ( $manual_enabled === 'yes' ) {
+			$manual_rate = get_option( 'myd-currency-manual-rate-eur-vef' );
+			if ( ! empty( $manual_rate ) && is_numeric( $manual_rate ) && floatval( $manual_rate ) > 0 ) {
+				return floatval( $manual_rate );
+			}
+		}
+
+		// Fall back to automatic rate from API
 		$rate = get_transient( self::TRANSIENT_KEY_EUR_VEF );
 
 		if ( false === $rate ) {
@@ -412,14 +460,19 @@ class Currency_Converter {
 	 *
 	 * @since 2.2.19
 	 * @updated 2.2.20 - Updated for USD->VEF and EUR->VEF
+	 * @updated 2.3.1 - Added manual rate information
 	 * @return array Cache information for both conversion rates
 	 */
 	public static function get_cache_info() {
 		$usd_rate = get_transient( self::TRANSIENT_KEY_USD_VEF );
 		$usd_timeout = get_option( '_transient_timeout_' . self::TRANSIENT_KEY_USD_VEF );
+		$usd_manual_enabled = self::is_manual_usd_rate_enabled();
+		$usd_manual_rate = get_option( 'myd-currency-manual-rate-usd-vef' );
 
 		$eur_rate = get_transient( self::TRANSIENT_KEY_EUR_VEF );
 		$eur_timeout = get_option( '_transient_timeout_' . self::TRANSIENT_KEY_EUR_VEF );
+		$eur_manual_enabled = self::is_manual_eur_rate_enabled();
+		$eur_manual_rate = get_option( 'myd-currency-manual-rate-eur-vef' );
 
 		return array(
 			'usd_to_vef' => array(
@@ -427,12 +480,18 @@ class Currency_Converter {
 				'cached' => $usd_rate !== false,
 				'expires_at' => $usd_timeout ? date( 'Y-m-d H:i:s', $usd_timeout ) : null,
 				'expires_in_minutes' => $usd_timeout ? round( ( $usd_timeout - time() ) / 60 ) : null,
+				'manual_rate_enabled' => $usd_manual_enabled,
+				'manual_rate' => $usd_manual_enabled ? floatval( $usd_manual_rate ) : null,
+				'using_manual_rate' => $usd_manual_enabled,
 			),
 			'eur_to_vef' => array(
 				'rate' => $eur_rate,
 				'cached' => $eur_rate !== false,
 				'expires_at' => $eur_timeout ? date( 'Y-m-d H:i:s', $eur_timeout ) : null,
 				'expires_in_minutes' => $eur_timeout ? round( ( $eur_timeout - time() ) / 60 ) : null,
+				'manual_rate_enabled' => $eur_manual_enabled,
+				'manual_rate' => $eur_manual_enabled ? floatval( $eur_manual_rate ) : null,
+				'using_manual_rate' => $eur_manual_enabled,
 			),
 		);
 	}
@@ -443,6 +502,7 @@ class Currency_Converter {
 	 *
 	 * @since 2.2.19
 	 * @updated 2.2.20 - Auto-detect currency (USD or EUR)
+	 * @updated 2.3.1 - Show manual rate indicator
 	 * @param array $atts Atributos del shortcode
 	 * @return string HTML del shortcode
 	 */
@@ -459,13 +519,35 @@ class Currency_Converter {
 		$store_currency = self::get_store_currency();
 		$data = false;
 		$currency_label = 'USD';
+		$is_manual = false;
+		$manual_rate = 0;
 
 		// Obtener datos según la moneda configurada
 		if ( $store_currency === 'EUR' ) {
-			$data = self::get_eur_vef_data();
+			$is_manual = self::is_manual_eur_rate_enabled();
+			if ( $is_manual ) {
+				$manual_rate = get_option( 'myd-currency-manual-rate-eur-vef' );
+				$data = array(
+					'nombre' => 'Tasa Manual',
+					'promedio' => floatval( $manual_rate ),
+					'fechaActualizacion' => null
+				);
+			} else {
+				$data = self::get_eur_vef_data();
+			}
 			$currency_label = 'EUR';
 		} elseif ( $store_currency === 'USD' ) {
-			$data = self::get_usd_vef_data();
+			$is_manual = self::is_manual_usd_rate_enabled();
+			if ( $is_manual ) {
+				$manual_rate = get_option( 'myd-currency-manual-rate-usd-vef' );
+				$data = array(
+					'nombre' => 'Tasa Manual',
+					'promedio' => floatval( $manual_rate ),
+					'fechaActualizacion' => null
+				);
+			} else {
+				$data = self::get_usd_vef_data();
+			}
 			$currency_label = 'USD';
 		}
 
@@ -483,7 +565,11 @@ class Currency_Converter {
 
 		if ( $atts['show_rate'] === 'true' && isset( $data['promedio'] ) ) {
 			$formatted_rate = self::format_vef_amount( $data['promedio'] );
-			$html .= '<div class="myd-bcv-rate">Bs. ' . esc_html( $formatted_rate ) . ' / ' . esc_html( $currency_label ) . '</div>';
+			$html .= '<div class="myd-bcv-rate">Bs. ' . esc_html( $formatted_rate ) . ' / ' . esc_html( $currency_label );
+			if ( $is_manual ) {
+				$html .= ' <small style="color: #2271b1;">(Manual)</small>';
+			}
+			$html .= '</div>';
 		}
 
 		if ( $atts['show_date'] === 'true' && isset( $data['fechaActualizacion'] ) && $data['fechaActualizacion'] ) {

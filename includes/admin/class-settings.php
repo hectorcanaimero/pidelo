@@ -261,6 +261,38 @@ class Settings extends Admin_Settings {
 				],
 			],
 			[
+				'name' => 'myd-currency-manual-rate-usd-vef-enabled',
+				'option_group' => self::CONFIG_GROUP,
+				'args' => [
+					'sanitize_callback' => 'sanitize_text_field',
+					'default' => 'no',
+				],
+			],
+			[
+				'name' => 'myd-currency-manual-rate-usd-vef',
+				'option_group' => self::CONFIG_GROUP,
+				'args' => [
+					'sanitize_callback' => 'sanitize_text_field',
+					'default' => '',
+				],
+			],
+			[
+				'name' => 'myd-currency-manual-rate-eur-vef-enabled',
+				'option_group' => self::CONFIG_GROUP,
+				'args' => [
+					'sanitize_callback' => 'sanitize_text_field',
+					'default' => 'no',
+				],
+			],
+			[
+				'name' => 'myd-currency-manual-rate-eur-vef',
+				'option_group' => self::CONFIG_GROUP,
+				'args' => [
+					'sanitize_callback' => 'sanitize_text_field',
+					'default' => '',
+				],
+			],
+			[
 				'name' => 'fdm-license',
 				'option_group' => self::LICENSE_GROUP,
 				'args' => []

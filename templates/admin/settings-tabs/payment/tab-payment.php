@@ -137,5 +137,108 @@ $saved_currency_code = Myd_Currency::get_currency_code();
 		</tbody>
 	</table>
 
+	<h3><?php esc_html_e( 'Tasas de Cambio Manuales', 'myd-delivery-pro' ); ?></h3>
+	<p><?php esc_html_e( 'Configure tasas de cambio manuales para conversiones a VEF. Las tasas manuales tienen prioridad sobre las automáticas.', 'myd-delivery-pro' ); ?></p>
+
+	<table class="form-table">
+		<tbody>
+			<tr>
+				<th scope="row">
+					<label for="myd-currency-manual-rate-usd-vef-enabled">
+						<?php esc_html_e( 'Tasa Manual USD → VEF', 'myd-delivery-pro' ); ?>
+					</label>
+				</th>
+				<td>
+					<input
+						type="checkbox"
+						name="myd-currency-manual-rate-usd-vef-enabled"
+						id="myd-currency-manual-rate-usd-vef-enabled"
+						value="yes"
+						<?php checked( get_option( 'myd-currency-manual-rate-usd-vef-enabled' ), 'yes' ); ?>
+					>
+					<label for="myd-currency-manual-rate-usd-vef-enabled">
+						<?php esc_html_e( 'Usar tasa manual para USD → VEF', 'myd-delivery-pro' ); ?>
+					</label>
+					<p class="description">
+						<?php esc_html_e( 'Active esta opción para usar una tasa de cambio manual en lugar de la tasa automática. Útil para usar el dólar paralelo.', 'myd-delivery-pro' ); ?>
+					</p>
+
+					<div id="myd-usd-vef-manual-rate-field" style="margin-top: 15px; <?php echo ( get_option( 'myd-currency-manual-rate-usd-vef-enabled' ) !== 'yes' ) ? 'display:none;' : ''; ?>">
+						<label for="myd-currency-manual-rate-usd-vef">
+							<?php esc_html_e( 'Tasa USD → VEF:', 'myd-delivery-pro' ); ?>
+						</label><br>
+						<input
+							type="number"
+							step="0.01"
+							min="0"
+							name="myd-currency-manual-rate-usd-vef"
+							id="myd-currency-manual-rate-usd-vef"
+							value="<?php echo esc_attr( get_option( 'myd-currency-manual-rate-usd-vef' ) ); ?>"
+							class="regular-text"
+							placeholder="<?php esc_attr_e( 'Ej: 45.50', 'myd-delivery-pro' ); ?>"
+						>
+						<p class="description">
+							<?php esc_html_e( 'Ingrese la tasa de cambio manual (Bs por cada USD). Debe ser un número positivo.', 'myd-delivery-pro' ); ?>
+						</p>
+					</div>
+
+					<script>
+					document.getElementById('myd-currency-manual-rate-usd-vef-enabled').addEventListener('change', function() {
+						document.getElementById('myd-usd-vef-manual-rate-field').style.display = this.checked ? 'block' : 'none';
+					});
+					</script>
+				</td>
+			</tr>
+
+			<tr>
+				<th scope="row">
+					<label for="myd-currency-manual-rate-eur-vef-enabled">
+						<?php esc_html_e( 'Tasa Manual EUR → VEF', 'myd-delivery-pro' ); ?>
+					</label>
+				</th>
+				<td>
+					<input
+						type="checkbox"
+						name="myd-currency-manual-rate-eur-vef-enabled"
+						id="myd-currency-manual-rate-eur-vef-enabled"
+						value="yes"
+						<?php checked( get_option( 'myd-currency-manual-rate-eur-vef-enabled' ), 'yes' ); ?>
+					>
+					<label for="myd-currency-manual-rate-eur-vef-enabled">
+						<?php esc_html_e( 'Usar tasa manual para EUR → VEF', 'myd-delivery-pro' ); ?>
+					</label>
+					<p class="description">
+						<?php esc_html_e( 'Active esta opción para usar una tasa de cambio manual en lugar de la tasa automática.', 'myd-delivery-pro' ); ?>
+					</p>
+
+					<div id="myd-eur-vef-manual-rate-field" style="margin-top: 15px; <?php echo ( get_option( 'myd-currency-manual-rate-eur-vef-enabled' ) !== 'yes' ) ? 'display:none;' : ''; ?>">
+						<label for="myd-currency-manual-rate-eur-vef">
+							<?php esc_html_e( 'Tasa EUR → VEF:', 'myd-delivery-pro' ); ?>
+						</label><br>
+						<input
+							type="number"
+							step="0.01"
+							min="0"
+							name="myd-currency-manual-rate-eur-vef"
+							id="myd-currency-manual-rate-eur-vef"
+							value="<?php echo esc_attr( get_option( 'myd-currency-manual-rate-eur-vef' ) ); ?>"
+							class="regular-text"
+							placeholder="<?php esc_attr_e( 'Ej: 50.25', 'myd-delivery-pro' ); ?>"
+						>
+						<p class="description">
+							<?php esc_html_e( 'Ingrese la tasa de cambio manual (Bs por cada EUR). Debe ser un número positivo.', 'myd-delivery-pro' ); ?>
+						</p>
+					</div>
+
+					<script>
+					document.getElementById('myd-currency-manual-rate-eur-vef-enabled').addEventListener('change', function() {
+						document.getElementById('myd-eur-vef-manual-rate-field').style.display = this.checked ? 'block' : 'none';
+					});
+					</script>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+
 	<?php do_action( 'myd-delivery/settings/payment/after-fields' ); ?>
 </div>
