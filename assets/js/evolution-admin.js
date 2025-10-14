@@ -36,17 +36,20 @@
       const $indicator = $('#evolution-status-indicator');
       const $banner = $('.myd-evolution-status-banner');
       const $btnShowQr = $('#btn-show-qr-section');
+      const $btnDisconnect = $('#btn-disconnect-delete-instance');
 
       if (isConnected) {
         $indicator.addClass('connected');
         $banner.addClass('connected');
         $indicator.find('.status-text').text(mydEvolutionData.i18n.connected);
         $btnShowQr.hide();
+        $btnDisconnect.show();
       } else {
         $indicator.removeClass('connected');
         $banner.removeClass('connected');
         $indicator.find('.status-text').text(mydEvolutionData.i18n.disconnected);
         $btnShowQr.show();
+        $btnDisconnect.hide();
       }
     }
 
@@ -226,6 +229,8 @@
           nonce: mydEvolutionData.nonce,
         },
         success: function (response) {
+          console.log(mydEvolutionData.ajaxurl);
+          console.log(response);
           if (response.success) {
             $result.addClass('success').html('<span class="dashicons dashicons-yes"></span> ' + response.data.message);
             updateStatusIndicator(true);
@@ -239,6 +244,8 @@
           }
         },
         error: function (xhr, status, error) {
+          console.log(status);
+          console.log(error);
           $result
             .addClass('error')
             .html('<span class="dashicons dashicons-no"></span> ' + mydEvolutionData.i18n.connectionError);
@@ -428,6 +435,61 @@
      */
     $('#btn-show-qr-section').on('click', function () {
       $('#qr-connection-section').fadeIn();
+    });
+
+    /**
+     * Desconectar y eliminar instancia
+     */
+    $('#btn-disconnect-delete-instance').on('click', function () {
+      if (
+        !confirm(
+          '¿Estás seguro de que deseas desconectar y eliminar esta instancia?\n\n' +
+            'Esta acción:\n' +
+            '• Desconectará tu WhatsApp\n' +
+            '• Eliminará la instancia de Evolution API\n' +
+            '• Tendrás que volver a conectar si deseas usar WhatsApp nuevamente\n\n' +
+            'Esta acción NO se puede deshacer.',
+        )
+      ) {
+        return;
+      }
+
+      const $btn = $(this);
+      const originalHtml = $btn.html();
+
+      $btn.prop('disabled', true).html('<span class="dashicons dashicons-update spin"></span> Desconectando...');
+
+      $.ajax({
+        url: mydEvolutionData.ajaxurl,
+        type: 'POST',
+        data: {
+          action: 'myd_evolution_disconnect_delete',
+          nonce: mydEvolutionData.nonce,
+        },
+        success: function (response) {
+          if (response.success) {
+            alert('✓ ' + response.data.message);
+
+            // Actualizar UI
+            updateStatusIndicator(false);
+            $('#qr-connection-section').hide();
+            resetQrDisplay();
+
+            // Recargar página después de 1 segundo
+            setTimeout(function () {
+              location.reload();
+            }, 1000);
+          } else {
+            alert('✗ Error: ' + response.data.message);
+          }
+        },
+        error: function () {
+          alert('✗ Error al intentar desconectar. Por favor intenta de nuevo.');
+        },
+        complete: function () {
+          $btn.prop('disabled', false).html(originalHtml);
+        },
+      });
     });
 
     /**

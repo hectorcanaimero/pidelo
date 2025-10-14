@@ -39,6 +39,7 @@ class Evolution_Ajax {
 		add_action( 'wp_ajax_myd_evolution_check_status', [ $this, 'check_status' ] );
 		add_action( 'wp_ajax_myd_evolution_reconnect', [ $this, 'reconnect' ] );
 		add_action( 'wp_ajax_myd_evolution_reset', [ $this, 'reset' ] );
+		add_action( 'wp_ajax_myd_evolution_disconnect_delete', [ $this, 'disconnect_and_delete' ] );
 	}
 
 	/**
@@ -387,6 +388,63 @@ class Evolution_Ajax {
 		} else {
 			wp_send_json_error( [
 				'message' => $result['message'],
+			] );
+		}
+	}
+
+	/**
+	 * Desconectar y eliminar instancia completamente
+	 *
+	 * Este método:
+	 * 1. Hace logout de la instancia (desconecta WhatsApp)
+	 * 2. Elimina la instancia de Evolution API
+	 * 3. Limpia las opciones guardadas en WordPress
+	 *
+	 * @return void
+	 */
+	public function disconnect_and_delete(): void {
+		check_ajax_referer( 'myd-evolution-send', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( [
+				'message' => __( 'Permission denied', 'myd-delivery-pro' ),
+			] );
+		}
+
+		$client = new Evolution_Client();
+
+		// Generar nombre de instancia desde el nombre de la empresa (siempre)
+		$store_name = get_option( 'fdm-business-name', get_bloginfo( 'name' ) );
+		$instance_name = sanitize_title( $store_name );
+
+		if ( empty( $instance_name ) ) {
+			wp_send_json_error( [
+				'message' => __( 'No instance configured', 'myd-delivery-pro' ),
+			] );
+		}
+
+		// Paso 1: Intentar hacer logout
+		$logout_result = $client->logout_instance( $instance_name );
+		error_log( '[Evolution API] Logout result: ' . wp_json_encode( $logout_result ) );
+
+		// Paso 2: Eliminar instancia (incluso si logout falla)
+		$delete_result = $client->delete_instance( $instance_name );
+		error_log( '[Evolution API] Delete result: ' . wp_json_encode( $delete_result ) );
+
+		// Paso 3: Limpiar solo opciones temporales (NO el nombre de instancia)
+		// El nombre de instancia se mantiene para poder reconectar con el mismo nombre
+		delete_option( 'myd-evolution-instance-created-at' );
+		delete_option( 'myd-evolution-instance-auto-setup' );
+
+		if ( $delete_result['success'] ) {
+			wp_send_json_success( [
+				'message' => __( 'Instance disconnected and deleted successfully. You can create a new instance anytime.', 'myd-delivery-pro' ),
+			] );
+		} else {
+			// Aunque la eliminación falle en API, ya limpiamos las opciones locales
+			wp_send_json_success( [
+				'message' => __( 'Instance disconnected locally. You may need to delete it manually from Evolution API.', 'myd-delivery-pro' ),
+				'warning' => $delete_result['error'] ?? '',
 			] );
 		}
 	}

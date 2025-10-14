@@ -15,8 +15,8 @@ $is_enabled = get_option( 'myd-evolution-api-enabled' ) === 'yes';
 $phone_country_code = get_option( 'myd-evolution-phone-country-code', '58' );
 $auto_events = get_option( 'myd-evolution-auto-send-events', [] );
 
-// Auto-generar nombre de instancia basado en el nombre de la tienda
-$store_name = get_option( 'myd_business_name', get_bloginfo( 'name' ) );
+// Generar nombre de instancia desde el nombre de la empresa (siempre)
+$store_name = get_option( 'fdm-business-name', get_bloginfo( 'name' ) );
 $instance_name = sanitize_title( $store_name );
 
 if ( ! is_array( $auto_events ) ) {
@@ -42,6 +42,10 @@ if ( ! is_array( $auto_events ) ) {
 			<button type="button" class="button button-primary" id="btn-show-qr-section" style="display: none;">
 				<span class="dashicons dashicons-smartphone"></span>
 				<?php esc_html_e( 'Conectar WhatsApp', 'myd-delivery-pro' ); ?>
+			</button>
+			<button type="button" class="button button-secondary" id="btn-disconnect-delete-instance" style="display: none;">
+				<span class="dashicons dashicons-dismiss"></span>
+				<?php esc_html_e( 'Desconectar y Eliminar Instancia', 'myd-delivery-pro' ); ?>
 			</button>
 		</div>
 	</div>
@@ -134,29 +138,6 @@ if ( ! is_array( $auto_events ) ) {
 					>
 					<p class="description">
 						<?php esc_html_e( 'Código de país para formatear teléfonos (ej: 55 para Brasil, 54 para Argentina, 58 para Venezuela)', 'myd-delivery-pro' ); ?>
-					</p>
-				</td>
-			</tr>
-
-			<!-- Nombre de Instancia (Auto-generado) -->
-			<tr>
-				<th scope="row">
-					<label for="myd-evolution-instance-name">
-						<?php esc_html_e( 'Nombre de Instancia', 'myd-delivery-pro' ); ?>
-					</label>
-				</th>
-				<td>
-					<input
-						type="text"
-						id="myd-evolution-instance-name"
-						value="<?php echo esc_attr( $instance_name ); ?>"
-						class="regular-text"
-						readonly
-						disabled
-						style="background-color: #f0f0f0; color: #666;"
-					>
-					<p class="description">
-						<?php esc_html_e( 'Nombre de instancia generado automáticamente desde el nombre de la tienda. Este valor se usa para identificar tu conexión WhatsApp.', 'myd-delivery-pro' ); ?>
 					</p>
 				</td>
 			</tr>

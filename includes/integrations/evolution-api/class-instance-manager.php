@@ -52,8 +52,8 @@ class Instance_Manager {
 		$this->client = new Evolution_Client();
 		$this->logger = new Logger();
 
-		// Generar nombre de instancia basado en el nombre de la tienda
-		$store_name = get_option( 'myd_business_name', get_bloginfo( 'name' ) );
+		// Nombre de instancia generado siempre desde el nombre de la empresa
+		$store_name = get_option( 'fdm-business-name', get_bloginfo( 'name' ) );
 		$this->instance_name = sanitize_title( $store_name );
 	}
 
@@ -224,7 +224,7 @@ class Instance_Manager {
 	 * @return void
 	 */
 	private function save_instance_config() {
-		update_option( 'myd-evolution-instance-name', $this->instance_name );
+		// Solo guardamos metadatos temporales, el nombre se genera siempre desde fdm-business-name
 		update_option( 'myd-evolution-instance-created-at', current_time( 'mysql' ) );
 		update_option( 'myd-evolution-instance-auto-setup', 'yes' );
 	}
@@ -235,7 +235,8 @@ class Instance_Manager {
 	 * @return array Estado actual
 	 */
 	public function check_instance_status() {
-		$instance_name = get_option( 'myd-evolution-instance-name', $this->instance_name );
+		// Usar siempre el nombre de instancia generado desde el nombre de empresa
+		$instance_name = $this->instance_name;
 
 		if ( empty( $instance_name ) ) {
 			return [
@@ -270,7 +271,8 @@ class Instance_Manager {
 	 * @return array QR code data
 	 */
 	public function reconnect_instance() {
-		$instance_name = get_option( 'myd-evolution-instance-name', $this->instance_name );
+		// Usar siempre el nombre generado desde el nombre de empresa
+		$instance_name = $this->instance_name;
 
 		if ( empty( $instance_name ) ) {
 			return [
@@ -302,7 +304,8 @@ class Instance_Manager {
 	 * @return array Resultado del reset
 	 */
 	public function reset_instance() {
-		$instance_name = get_option( 'myd-evolution-instance-name', $this->instance_name );
+		// Usar siempre el nombre generado desde el nombre de empresa
+		$instance_name = $this->instance_name;
 
 		if ( ! empty( $instance_name ) ) {
 			// Intentar hacer logout de la instancia actual
@@ -319,7 +322,8 @@ class Instance_Manager {
 	 * @return array Información de la instancia
 	 */
 	public function get_instance_info() {
-		$instance_name = get_option( 'myd-evolution-instance-name', '' );
+		// Usar siempre el nombre generado desde el nombre de empresa
+		$instance_name = $this->instance_name;
 		$created_at = get_option( 'myd-evolution-instance-created-at', '' );
 		$auto_setup = get_option( 'myd-evolution-instance-auto-setup', 'no' );
 

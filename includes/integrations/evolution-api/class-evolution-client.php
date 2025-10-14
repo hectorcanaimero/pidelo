@@ -48,9 +48,12 @@ class Evolution_Client {
 		$this->api_url = 'https://evo.guria.lat';
 		$this->api_key = '5ab35f94cab7300af5f5ee90ed738bdeb2d0299cba052f8c7bcc343d49d0e39d';
 
-		// Nombre de instancia auto-generado desde el nombre de la tienda
-		$store_name = get_option( 'myd_business_name', get_bloginfo( 'name' ) );
+		// Nombre de instancia generado siempre desde el nombre de la empresa
+		$store_name = get_option( 'fdm-business-name', get_bloginfo( 'name' ) );
 		$this->instance_name = sanitize_title( $store_name );
+
+		// Log para debugging
+		error_log( '[Evolution API] Using instance name: ' . $this->instance_name );
 	}
 
 	/**
@@ -156,31 +159,92 @@ class Evolution_Client {
 			];
 		}
 
-		$endpoint = $this->api_url . '/instance/fetchInstances?instanceName=' . $instance;
+		// Log para debugging
+		error_log( '[Evolution API] Checking status for instance: ' . $instance );
+
+		// Usar el endpoint correcto para verificar estado de conexión
+		// Endpoint: /instance/connectionState/{instanceName}
+		$endpoint = $this->api_url . '/instance/connectionState/' . $instance;
 
 		$result = $this->request( $endpoint, [], 'GET' );
 
+		// Log de respuesta
+		error_log( '[Evolution API] connectionState response: ' . wp_json_encode( $result ) );
+
 		if ( ! $result['success'] ) {
-			return $result;
-		}
+			// Si el endpoint de connectionState falla, intentar con fetchInstances como fallback
+			error_log( '[Evolution API] connectionState failed, trying fetchInstances fallback' );
 
-		$instances = $result['data'] ?? [];
+			$endpoint_fallback = $this->api_url . '/instance/fetchInstances?instanceName=' . $instance;
+			$result_fallback = $this->request( $endpoint_fallback, [], 'GET' );
 
-		if ( empty( $instances ) ) {
+			error_log( '[Evolution API] fetchInstances response: ' . wp_json_encode( $result_fallback ) );
+
+			if ( ! $result_fallback['success'] ) {
+				return [
+					'success' => false,
+					'error'   => $result['error'] ?? __( 'Failed to check instance status', 'myd-delivery-pro' ),
+				];
+			}
+
+			$instances = $result_fallback['data'] ?? [];
+			if ( empty( $instances ) ) {
+				error_log( '[Evolution API] No instances found in fetchInstances response' );
+				return [
+					'success' => false,
+					'error'   => __( 'Instance not found', 'myd-delivery-pro' ),
+				];
+			}
+
+			$instance_data = $instances[0];
+			error_log( '[Evolution API] Instance data: ' . wp_json_encode( $instance_data ) );
+
+			// Verificar múltiples campos posibles para el estado
+			$is_open = false;
+			$status = 'unknown';
+
+			if ( isset( $instance_data['instance']['state'] ) ) {
+				$status = $instance_data['instance']['state'];
+				$is_open = $status === 'open';
+			} elseif ( isset( $instance_data['status'] ) ) {
+				$status = $instance_data['status'];
+				$is_open = $status === 'open';
+			} elseif ( isset( $instance_data['state'] ) ) {
+				$status = $instance_data['state'];
+				$is_open = $status === 'open';
+			}
+
+			error_log( '[Evolution API] Final status: ' . $status . ', is_open: ' . ( $is_open ? 'true' : 'false' ) );
+
 			return [
-				'success' => false,
-				'error'   => __( 'Instance not found', 'myd-delivery-pro' ),
+				'success'   => true,
+				'is_open'   => $is_open,
+				'status'    => $status,
+				'data'      => $instance_data,
 			];
 		}
 
-		$instance_data = $instances[0];
-		$is_open = isset( $instance_data['status'] ) && $instance_data['status'] === 'open';
+		// Procesar respuesta de connectionState
+		$connection_state = $result['data'] ?? [];
+
+		// El endpoint connectionState retorna: { instance: { state: 'open' | 'close' | 'connecting' } }
+		// Manejar diferentes formatos de respuesta
+		$state = 'unknown';
+		if ( isset( $connection_state['instance']['state'] ) ) {
+			$state = $connection_state['instance']['state'];
+		} elseif ( isset( $connection_state['state'] ) ) {
+			$state = $connection_state['state'];
+		}
+
+		$is_open = $state === 'open';
+
+		error_log( '[Evolution API] connectionState success - state: ' . $state . ', is_open: ' . ( $is_open ? 'true' : 'false' ) );
 
 		return [
 			'success'   => true,
 			'is_open'   => $is_open,
-			'status'    => $instance_data['status'] ?? 'unknown',
-			'data'      => $instance_data,
+			'status'    => $state,
+			'data'      => $connection_state,
 		];
 	}
 
