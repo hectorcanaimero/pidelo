@@ -7,6 +7,29 @@ y este proyecto se adhiere al [Versionado Sem�ntico](https://semver.org/lang/e
 
 ---
 
+## [2.3.3] - 2025-10-28
+
+### Corregido
+
+- **Bug crítico: Error al subir comprobante de pago en mobile (#12)**
+  - **Frontend (`payment-receipt.js`)**:
+    - Nueva función `isElementVisible()` con detección robusta de visibilidad en mobile
+    - Verificación multi-nivel: display, visibility, opacity, height y estado de `<details>`
+    - Manejo garantizado del loading animation en TODOS los puntos de salida
+    - Cambio de `throw Error` a `return false` para evitar UI bloqueado
+    - Logs de debug completos con prefijos `[DEBUG]`, `[INFO]`, `[ERROR]`, `[SUCCESS]`
+    - Información de contexto mobile: user agent, viewport, file details
+    - Timeout de 100ms para scroll y focus en mobile (mejor compatibilidad)
+  - **Backend (`class-place-payment.php`)**:
+    - Logs completos con `error_log()` para tracking del flujo de subida
+    - Respuestas JSON consistentes con `wp_send_json_error()` en todos los errores
+    - Validación mejorada con logs de tipos de archivo, tamaño y errores de upload
+    - Tracking detallado de creación de attachments y metadatos
+- **Problema**: El campo de comprobante no se detectaba correctamente como visible en mobile
+- **Problema**: Loading animation quedaba activo indefinidamente en caso de error
+- **Problema**: Difícil de debuggear problemas en dispositivos mobile
+- **Resultado**: Upload de comprobantes funciona correctamente en mobile con debugging completo
+
 ## [2.3.0] - 2025-10-11
 
 ### Añadido
