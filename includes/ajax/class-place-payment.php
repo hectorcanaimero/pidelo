@@ -26,24 +26,46 @@ class Place_Payment {
 	 * @return void
 	 */
 	public function place_payment() {
+		// Logging para debug
+		error_log( '[MYD Payment] place_payment called' );
+		error_log( '[MYD Payment] POST data: ' . print_r( $_POST, true ) );
+		error_log( '[MYD Payment] FILES data: ' . print_r( $_FILES, true ) );
+
 		$nonce = $_POST['sec'] ?? null;
 		if ( ! $nonce || ! \wp_verify_nonce( $nonce, 'myd-create-order' ) ) {
-			die( \esc_html__( 'Ops! Security check failed.', 'my-delivey-wordpress' ) );
+			error_log( '[MYD Payment] Security check failed' );
+			\wp_send_json_error(
+				array(
+					'message' => \esc_html__( 'Ops! Security check failed.', 'my-delivey-wordpress' ),
+				)
+			);
+			\wp_die();
 		}
 
 		$data = json_decode( stripslashes( $_POST['data'] ), true );
 		$order_id = (int) $data['id'];
 		$payment = $data['payment'];
 
+		error_log( '[MYD Payment] Order ID: ' . $order_id );
+		error_log( '[MYD Payment] Payment data: ' . print_r( $payment, true ) );
+
 		// Validar comprobante de pago obligatorio
 		$payment_receipt_required = \get_option( 'myd-payment-receipt-required' ) === 'yes';
 		$payment_type = $payment['type'] ?? '';
+
+		error_log( '[MYD Payment] Receipt required: ' . ( $payment_receipt_required ? 'yes' : 'no' ) );
+		error_log( '[MYD Payment] Payment type: ' . $payment_type );
 
 		// Solo validar si es pago "upon-delivery" (no aplica para payment-integration)
 		if ( $payment_receipt_required && $payment_type === 'upon-delivery' ) {
 			$has_file = ! empty( $_FILES['payment_receipt'] ) && $_FILES['payment_receipt']['error'] === UPLOAD_ERR_OK;
 
+			error_log( '[MYD Payment] Has file: ' . ( $has_file ? 'yes' : 'no' ) );
+
 			if ( ! $has_file ) {
+				$upload_error = isset( $_FILES['payment_receipt']['error'] ) ? $_FILES['payment_receipt']['error'] : 'No file uploaded';
+				error_log( '[MYD Payment] Validation failed - Upload error code: ' . $upload_error );
+
 				\wp_send_json_error(
 					array(
 						'message' => \esc_html__( 'El comprobante de pago es obligatorio. Por favor, adjunta tu comprobante para continuar.', 'myd-delivery-pro' ),
@@ -59,6 +81,8 @@ class Place_Payment {
 
 		// Handle payment receipt file upload
 		if ( ! empty( $_FILES['payment_receipt'] ) && $_FILES['payment_receipt']['error'] === UPLOAD_ERR_OK ) {
+			error_log( '[MYD Payment] Processing file upload' );
+
 			require_once( ABSPATH . 'wp-admin/includes/file.php' );
 			require_once( ABSPATH . 'wp-admin/includes/media.php' );
 			require_once( ABSPATH . 'wp-admin/includes/image.php' );
@@ -66,10 +90,15 @@ class Place_Payment {
 			$file = $_FILES['payment_receipt'];
 			$allowed_types = array( 'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'application/pdf' );
 
+			error_log( '[MYD Payment] File type: ' . $file['type'] );
+			error_log( '[MYD Payment] File size: ' . $file['size'] );
+
 			if ( in_array( $file['type'], $allowed_types ) ) {
 				$upload = \wp_handle_upload( $file, array( 'test_form' => false ) );
 
 				if ( ! isset( $upload['error'] ) && isset( $upload['file'] ) ) {
+					error_log( '[MYD Payment] File uploaded successfully: ' . $upload['file'] );
+
 					$attachment = array(
 						'post_mime_type' => $file['type'],
 						'post_title' => \sanitize_file_name( $file['name'] ),
@@ -83,8 +112,15 @@ class Place_Payment {
 						$attachment_data = \wp_generate_attachment_metadata( $attachment_id, $upload['file'] );
 						\wp_update_attachment_metadata( $attachment_id, $attachment_data );
 						\update_post_meta( $order_id, 'order_payment_receipt', $attachment_id );
+						error_log( '[MYD Payment] Attachment created with ID: ' . $attachment_id );
+					} else {
+						error_log( '[MYD Payment] Error creating attachment: ' . $attachment_id->get_error_message() );
 					}
+				} else {
+					error_log( '[MYD Payment] Upload error: ' . ( $upload['error'] ?? 'Unknown error' ) );
 				}
+			} else {
+				error_log( '[MYD Payment] Invalid file type: ' . $file['type'] );
 			}
 		}
 
@@ -132,6 +168,8 @@ class Place_Payment {
 		}
 
 		$response = \apply_filters( 'myd-delivery/order/place-payment/ajax-response', $response_object );
+
+		error_log( '[MYD Payment] Sending response: ' . print_r( $response, true ) );
 
 		echo json_encode( $response, true );
 		\wp_die();
