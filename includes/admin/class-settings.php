@@ -472,6 +472,16 @@ class Settings extends Admin_Settings {
 				],
 			],
 			[
+				'name' => 'myd-evolution-template-order-ready',
+				'option_group' => self::CONFIG_GROUP,
+				'args' => [
+					'default' => '¡Hola {customer-name}! ' . PHP_EOL .
+					'Tu pedido #{order-number} está esperando al delivery.' . PHP_EOL . PHP_EOL .
+					'Estará en camino muy pronto.' . PHP_EOL . PHP_EOL .
+					'Seguimiento: {order-track-page}',
+				],
+			],
+			[
 				'name' => 'myd-evolution-template-order-in-delivery',
 				'option_group' => self::CONFIG_GROUP,
 				'args' => [
@@ -482,12 +492,22 @@ class Settings extends Admin_Settings {
 				],
 			],
 			[
-				'name' => 'myd-evolution-template-order-completed',
+				'name' => 'myd-evolution-template-order-done',
+				'option_group' => self::CONFIG_GROUP,
+				'args' => [
+					'default' => '¡Hola {customer-name}! ' . PHP_EOL .
+					'Tu pedido #{order-number} está listo.' . PHP_EOL . PHP_EOL .
+					'Ya puedes recogerlo o está siendo enviado.' . PHP_EOL . PHP_EOL .
+					'Seguimiento: {order-track-page}',
+				],
+			],
+			[
+				'name' => 'myd-evolution-template-order-finished',
 				'option_group' => self::CONFIG_GROUP,
 				'args' => [
 					'default' => '¡Gracias {customer-name}! ' . PHP_EOL .
-					'Tu pedido #{order-number} ha sido completado.' . PHP_EOL . PHP_EOL .
-					'Esperamos que lo disfrutes. ¡Vuelve pronto!',
+					'Tu pedido #{order-number} ha sido finalizado.' . PHP_EOL . PHP_EOL .
+					'Esperamos que lo hayas disfrutado. ¡Vuelve pronto!',
 				],
 			],
 		];

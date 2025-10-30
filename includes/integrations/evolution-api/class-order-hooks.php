@@ -135,8 +135,10 @@ class Order_Hooks {
 			'new'         => 'order_new',
 			'confirmed'   => 'order_confirmed',
 			'in-process'  => 'order_in_process',
+			'waiting'     => 'order_ready',          // Pedido en Espera del Delivery
 			'in-delivery' => 'order_in_delivery',
-			'done'        => 'order_done',
+			'done'        => 'order_done',           // Pedido Listo
+			'finished'    => 'order_finished',       // Pedido Finalizado
 		];
 
 		return $status_map[ $status ] ?? '';

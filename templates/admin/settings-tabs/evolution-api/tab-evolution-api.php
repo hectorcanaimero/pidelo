@@ -205,6 +205,24 @@ if ( ! is_array( $auto_events ) ) {
 							>
 							<?php esc_html_e( 'En Preparación', 'myd-delivery-pro' ); ?>
 						</label>
+						<label style="display: block; margin-bottom: 8px;">
+							<input
+								type="checkbox"
+								name="myd-evolution-auto-send-events[]"
+								value="order_done"
+								<?php checked( in_array( 'order_done', $auto_events, true ) ); ?>
+							>
+							<?php esc_html_e( 'Pedido Listo', 'myd-delivery-pro' ); ?>
+						</label>
+						<label style="display: block; margin-bottom: 8px;">
+							<input
+								type="checkbox"
+								name="myd-evolution-auto-send-events[]"
+								value="order_ready"
+								<?php checked( in_array( 'order_ready', $auto_events, true ) ); ?>
+							>
+							<?php esc_html_e( 'Pedido en Espera del Delivery', 'myd-delivery-pro' ); ?>
+						</label>
 
 						<label style="display: block; margin-bottom: 8px;">
 							<input
@@ -220,10 +238,10 @@ if ( ! is_array( $auto_events ) ) {
 							<input
 								type="checkbox"
 								name="myd-evolution-auto-send-events[]"
-								value="order_done"
-								<?php checked( in_array( 'order_done', $auto_events, true ) ); ?>
+								value="order_finished"
+								<?php checked( in_array( 'order_finished', $auto_events, true ) ); ?>
 							>
-							<?php esc_html_e( 'Pedido Completado', 'myd-delivery-pro' ); ?>
+							<?php esc_html_e( 'Pedido Finalizado', 'myd-delivery-pro' ); ?>
 						</label>
 					</fieldset>
 				</td>
@@ -269,6 +287,24 @@ if ( ! is_array( $auto_events ) ) {
 				class="large-text code"
 			><?php echo esc_textarea( get_option( 'myd-evolution-template-order-in-process' ) ); ?></textarea>
 		</div>
+		<!-- Template: Pedido Listo -->
+		<div class="template-item">
+			<h4><?php esc_html_e( 'Mensaje: Pedido Listo', 'myd-delivery-pro' ); ?></h4>
+			<textarea
+				name="myd-evolution-template-order-done"
+				rows="5"
+				class="large-text code"
+			><?php echo esc_textarea( get_option( 'myd-evolution-template-order-done' ) ); ?></textarea>
+		</div>
+		<!-- Template: Pedido en Espera del Delivery -->
+		<div class="template-item">
+			<h4><?php esc_html_e( 'Mensaje: Pedido en Espera del Delivery', 'myd-delivery-pro' ); ?></h4>
+			<textarea
+				name="myd-evolution-template-order-ready"
+				rows="5"
+				class="large-text code"
+			><?php echo esc_textarea( get_option( 'myd-evolution-template-order-ready' ) ); ?></textarea>
+		</div>
 
 		<!-- Template: En Camino -->
 		<div class="template-item">
@@ -280,14 +316,14 @@ if ( ! is_array( $auto_events ) ) {
 			><?php echo esc_textarea( get_option( 'myd-evolution-template-order-in-delivery' ) ); ?></textarea>
 		</div>
 
-		<!-- Template: Completado -->
+		<!-- Template: Pedido Finalizado -->
 		<div class="template-item">
-			<h4><?php esc_html_e( 'Mensaje: Pedido Completado', 'myd-delivery-pro' ); ?></h4>
+			<h4><?php esc_html_e( 'Mensaje: Pedido Finalizado', 'myd-delivery-pro' ); ?></h4>
 			<textarea
-				name="myd-evolution-template-order-completed"
+				name="myd-evolution-template-order-finished"
 				rows="5"
 				class="large-text code"
-			><?php echo esc_textarea( get_option( 'myd-evolution-template-order-completed' ) ); ?></textarea>
+			><?php echo esc_textarea( get_option( 'myd-evolution-template-order-finished' ) ); ?></textarea>
 		</div>
 	</div>
 

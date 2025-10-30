@@ -7,6 +7,30 @@ y este proyecto se adhiere al [Versionado Sem�ntico](https://semver.org/lang/e
 
 ---
 
+## [2.3.5] - 2025-10-29
+
+### Mejorado
+
+- **Mejoras en integración de WhatsApp (Evolution API) (#13)**
+  - **Cambios en UI**:
+    - Nombre de pestaña cambiado de "Evolution API" → "WhatsApp" para mayor claridad
+  - **Nuevos Eventos Automáticos**:
+    - `order_ready` - Pedido en Espera del Delivery (estado: `waiting`)
+    - `order_done` - Pedido Listo (estado: `done`)
+    - `order_finished` - Pedido Finalizado (estado: `finished`)
+  - **Templates de Mensajes Personalizados**:
+    - Cada evento ahora tiene su propio template configurable en el admin
+    - Templates con valores por defecto en español
+    - Soporte completo de tokens: `{customer-name}`, `{order-number}`, `{order-total}`, etc.
+  - **Archivos modificados**:
+    - `templates/admin/settings.php`: Cambio de nombre de pestaña
+    - `templates/admin/settings-tabs/evolution-api/tab-evolution-api.php`: Nuevos checkboxes y templates
+    - `includes/admin/class-settings.php`: Registro de nuevos templates con defaults
+    - `includes/integrations/evolution-api/class-order-hooks.php`: Mapeo de nuevos estados
+    - `includes/integrations/evolution-api/class-whatsapp-service.php`: Soporte de nuevos eventos
+    - `myd-delivery-pro.php`: Versión 2.3.4 → 2.3.5
+  - **Resultado**: Sistema completo de notificaciones WhatsApp para todos los estados del pedido
+
 ## [2.3.4] - 2025-10-29
 
 ### Corregido

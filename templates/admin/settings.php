@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<a href="#tab_payment" id="tab-payment" class="nav-tab myd-tab" onclick="window.MydAdmin.mydChangeTab(event)"><?php esc_html_e( 'Payment', 'myd-delivery-pro' ); ?></a>
 		<a href="#tab_evolution_api" id="tab-evolution-api" class="nav-tab myd-tab" onclick="window.MydAdmin.mydChangeTab(event)">
 			<span class="dashicons dashicons-whatsapp" style="font-size: 16px; width: 16px; height: 16px; vertical-align: text-bottom;"></span>
-			<?php esc_html_e( 'Evolution API', 'myd-delivery-pro' ); ?>
+			<?php esc_html_e( 'WhatsApp', 'myd-delivery-pro' ); ?>
 		</a>
 		<a href="#tab_print" id="tab-print" class="nav-tab myd-tab" onclick="window.MydAdmin.mydChangeTab(event)"><?php esc_html_e( 'Print', 'myd-delivery-pro' ); ?></a>
 		<a href="#tab_layout" id="tab-layout" class="nav-tab myd-tab" onclick="window.MydAdmin.mydChangeTab(event)"><?php esc_html_e( 'Layout', 'myd-delivery-pro' ); ?></a>

@@ -149,8 +149,10 @@ class WhatsApp_Service {
 			'order_new'         => 'myd-evolution-template-order-created',
 			'order_confirmed'   => 'myd-evolution-template-order-confirmed',
 			'order_in_process'  => 'myd-evolution-template-order-in-process',
+			'order_ready'       => 'myd-evolution-template-order-ready',
 			'order_in_delivery' => 'myd-evolution-template-order-in-delivery',
-			'order_done'        => 'myd-evolution-template-order-completed',
+			'order_done'        => 'myd-evolution-template-order-done',
+			'order_finished'    => 'myd-evolution-template-order-finished',
 			'manual'            => '', // Usar default
 		];
 
