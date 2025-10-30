@@ -47,6 +47,9 @@
 
     // Override with new method that supports files
     window.MydOrder.placePayment = async function () {
+      // Get the payment type first
+      const paymentType = this.payment.get().type;
+
       // Get the payment receipt file input
       const fileInput = document.getElementById('input-payment-receipt');
       const hasFile = fileInput && fileInput.files && fileInput.files.length > 0;
@@ -54,17 +57,25 @@
 
       if (fileInput) {
         console.log('[DEBUG] File input details:', {
+          paymentType: paymentType,
           display: window.getComputedStyle(fileInput).display,
           visibility: window.getComputedStyle(fileInput).visibility,
           opacity: window.getComputedStyle(fileInput).opacity,
           offsetParent: fileInput.offsetParent,
           offsetHeight: fileInput.offsetHeight,
           files: fileInput.files.length,
+          isVisible: isFileInputVisible,
         });
       }
 
-      // Validación: Si el campo de comprobante está visible (obligatorio) y no hay archivo
-      if (isFileInputVisible && !hasFile) {
+      // Validación: Solo requerir comprobante si el pago es "upon-delivery" y el campo está visible
+      if (paymentType === 'upon-delivery' && isFileInputVisible && !hasFile) {
+        // Detener el loading del botón
+        window.Myd.removeLoadingAnimation('.myd-cart__button-text');
+
+        // Mostrar alerta nativa (mejor UX en mobile)
+        alert('⚠️ Comprobante de Pago Obligatorio\n\nPor favor, adjunta tu comprobante de pago para continuar con el pedido.');
+
         // Hacer scroll al campo y hacer focus (con timeout para mobile)
         setTimeout(() => {
           fileInput.scrollIntoView({ behavior: 'smooth', block: 'center' });

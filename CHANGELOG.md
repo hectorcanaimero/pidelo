@@ -7,6 +7,25 @@ y este proyecto se adhiere al [Versionado Sem�ntico](https://semver.org/lang/e
 
 ---
 
+## [2.3.4] - 2025-10-29
+
+### Corregido
+
+- **Bug crítico: Validación incorrecta de comprobante con múltiples tipos de pago (#12)**
+  - **Problema**: Al tener activado "Requerir comprobante obligatorio" y seleccionar "Pay now" (payment-integration), el checkout se quedaba en loading infinito
+  - **Causa**: La validación no consideraba el tipo de pago seleccionado, intentando validar el comprobante incluso cuando estaba en un `<details>` cerrado
+  - **Solución**:
+    - Validación ahora verifica primero el tipo de pago (`paymentType`)
+    - Solo requiere comprobante cuando `paymentType === 'upon-delivery'`
+    - Detención del loading en el botón antes de mostrar alerta
+    - Alerta nativa del sistema (mejor UX en mobile Android/iOS)
+    - Scroll y focus automático al campo después de aceptar la alerta
+    - Logs ampliados incluyendo `paymentType` para debugging
+  - **Archivos modificados**:
+    - `assets/js/payment-receipt.js`: Validación corregida con alerta nativa
+    - `myd-delivery-pro.php`: Versión 2.3.3 → 2.3.4
+  - **Resultado**: Checkout funciona correctamente con ambos tipos de pago y feedback claro al usuario
+
 ## [2.3.3] - 2025-10-28
 
 ### Corregido
