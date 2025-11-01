@@ -1,0 +1,75 @@
+/**
+ * Sticky Categories Menu
+ *
+ * Styles for sticky category navigation menu
+ * @since 2.3.6
+ */
+
+.myd-content-filter {
+	transition: all 0.3s ease;
+}
+
+.myd-content-filter.is-sticky {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	z-index: 999;
+	background: #fff;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+	animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+	from {
+		transform: translateY(-100%);
+		opacity: 0;
+	}
+	to {
+		transform: translateY(0);
+		opacity: 1;
+	}
+}
+
+/* Placeholder para evitar saltos de contenido */
+.myd-content-filter-placeholder {
+	display: none;
+}
+
+.myd-content-filter-placeholder.active {
+	display: block;
+}
+
+/* Mejorar visualización del menú sticky */
+.myd-content-filter.is-sticky .myd-content-filter__categories {
+	padding: 10px 15px;
+}
+
+.myd-content-filter.is-sticky .myd-content-filter__tag {
+	margin: 5px;
+}
+
+/* Añadir indicador visual de categoría activa */
+.myd-content-filter__tag.active {
+	font-weight: bold;
+	border-bottom: 2px solid currentColor;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+	.myd-content-filter.is-sticky {
+		padding: 5px;
+	}
+
+	.myd-content-filter.is-sticky .myd-content-filter__categories {
+		padding: 8px 10px;
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+		white-space: nowrap;
+	}
+
+	.myd-content-filter.is-sticky .myd-content-filter__tag {
+		display: inline-block;
+		margin: 3px;
+	}
+}
