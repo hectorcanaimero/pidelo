@@ -11,9 +11,6 @@ function myd_add_settings_sytles() {
 		.myd-cart__nav--active .myd-cart__nav-desc, #myd-float__qty { color: <?php echo esc_html( get_option( 'fdm-principal-color' ) ); ?> }
 		.myd-cart__nav--active svg { fill: <?php echo esc_html( get_option( 'fdm-principal-color' ) ); ?> !important }
 		.myd-extra-price, .myd-product-item__price { color: <?php echo esc_html( get_option( 'myd-price-color' ) ); ?> }
-		.myd-content-filter.is-sticky { background: <?php echo esc_html( get_option( 'fdm-principal-color' ) ); ?> !important; }
-		.myd-content-filter.is-sticky .myd-content-filter__tag { color: #fff; }
-		.myd-content-filter.is-sticky .myd-content-filter__tag.active { border-bottom-color: #fff; }
 	</style>
 	<?php
 }
