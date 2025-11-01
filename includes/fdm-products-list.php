@@ -300,9 +300,7 @@ class Fdm_products_show {
 
 		\wp_enqueue_script( 'myd-create-order' );
 		\wp_enqueue_script( 'myd-payment-receipt' );
-		\wp_enqueue_script( 'myd-sticky-categories' );
 		\wp_enqueue_style( 'myd-delivery-frontend' );
-		\wp_enqueue_style( 'myd-sticky-categories' );
 
 		ob_start();
 

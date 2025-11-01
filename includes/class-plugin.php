@@ -416,10 +416,6 @@ final class Plugin {
 		// Register payment receipt upload handler
 		wp_register_script( 'myd-payment-receipt', MYD_PLUGN_URL . 'assets/js/payment-receipt.js', array( 'myd-create-order' ), MYD_CURRENT_VERSION, true );
 
-		// Register sticky categories menu
-		wp_register_script( 'myd-sticky-categories', MYD_PLUGN_URL . 'assets/js/sticky-categories-menu.js', array(), MYD_CURRENT_VERSION, true );
-		wp_register_style( 'myd-sticky-categories', MYD_PLUGN_URL . 'assets/css/sticky-categories-menu.css', array(), MYD_CURRENT_VERSION );
-
 		wp_register_style( 'myd-delivery-frontend', MYD_PLUGN_URL . 'assets/css/delivery-frontend.min.css', array(), MYD_CURRENT_VERSION );
 		wp_register_style( 'myd-order-panel-frontend', MYD_PLUGN_URL . 'assets/css/order-panel-frontend.min.css', array(), MYD_CURRENT_VERSION );
 		wp_register_style( 'myd-track-order-frontend', MYD_PLUGN_URL . 'assets/css/track-order-frontend.min.css', array(), MYD_CURRENT_VERSION );
