@@ -16,10 +16,6 @@
 			return;
 		}
 
-		// Obtener elementos de búsqueda
-		const searchIcon = document.getElementById('myd-content-filter__search-icon');
-		const searchInput = document.getElementById('myd-content-filter__search-input');
-
 		// Crear placeholder para evitar saltos de contenido
 		const placeholder = document.createElement('div');
 		placeholder.className = 'myd-content-filter-placeholder';
@@ -39,28 +35,12 @@
 				categoriesMenu.classList.add('is-sticky');
 				placeholder.classList.add('active');
 				placeholder.style.height = categoriesMenu.offsetHeight + 'px';
-
-				// Ocultar elementos de búsqueda cuando está sticky
-				if (searchIcon) {
-					searchIcon.style.display = 'none';
-				}
-				if (searchInput) {
-					searchInput.style.display = 'none';
-				}
 			} else if (scrollTop < menuOffsetTop && isSticky) {
 				// Desactivar sticky
 				isSticky = false;
 				categoriesMenu.classList.remove('is-sticky');
 				placeholder.classList.remove('active');
 				placeholder.style.height = '0';
-
-				// Mostrar elementos de búsqueda cuando no está sticky
-				if (searchIcon) {
-					searchIcon.style.display = '';
-				}
-				if (searchInput) {
-					searchInput.style.display = '';
-				}
 			}
 		}
 
