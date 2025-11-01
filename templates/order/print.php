@@ -32,7 +32,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			$map_type = array(
 				'delivery' => __( 'Delivery', 'myd-delivery-pro' ),
 				'take-away' => __( 'Take Away', 'myd-delivery-pro' ),
-				'order-in-store' => __( 'Delivery', 'myd-delivery-pro' ),
+				'order-in-store' => __( 'Order in Store', 'myd-delivery-pro' ),
 			);
 
 			$order_type = $map_type[ $order_type ] ?? '';
