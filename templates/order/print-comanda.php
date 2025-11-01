@@ -14,6 +14,18 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<?php $date = get_post_meta( $postid, 'order_date', true ); ?>
 		<?php $date = gmdate( 'd/m - H:i', strtotime( $date ) ); ?>
 
+		<?php
+			$order_type = \get_post_meta( $postid, 'order_ship_method', true );
+
+			$map_type = array(
+				'delivery' => __( 'Delivery', 'myd-delivery-pro' ),
+				'take-away' => __( 'Take Away', 'myd-delivery-pro' ),
+				'order-in-store' => __( 'Order in Store', 'myd-delivery-pro' ),
+			);
+
+			$order_type = $map_type[ $order_type ] ?? '';
+		?>
+
 		<div class="order-print-comanda" id="print-comanda-<?php echo esc_attr( $postid ); ?>">
 			<div style="border-top: 1px dashed #000; margin: 5px 0;"></div>
 
@@ -22,6 +34,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 			</div>
 
 			<div style="border-top: 1px dashed #000; margin: 5px 0 10px 0;"></div>
+
+			<div>
+				<strong><?php esc_html_e( 'Type', 'myd-delivery-pro' ); ?>:</strong> <?php echo esc_html( $order_type ); ?>
+			</div>
+
+			<?php $table = get_post_meta( $postid, 'order_table', true ); ?>
+			<?php if ( ! empty( $table ) ) : ?>
+				<div>
+					<strong><?php esc_html_e( 'Table', 'myd-delivery-pro' ); ?>:</strong> <?php echo esc_html( $table ); ?>
+				</div>
+			<?php endif; ?>
 
 			<div>
 				<?php echo esc_html( $date ); ?>
