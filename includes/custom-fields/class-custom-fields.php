@@ -145,6 +145,13 @@ class Myd_Custom_Fields {
 				update_post_meta( $post_id, $field_name, $value );
 			}
 		}
+
+		/**
+		 * Recalculate order totals when editing orders in admin
+		 */
+		if ( $post->post_type === 'mydelivery-orders' ) {
+			$this->recalculate_order_totals( $post_id );
+		}
 	}
 
 	/**
@@ -674,5 +681,87 @@ class Myd_Custom_Fields {
 		}
 
 		return $list_fields;
+	}
+
+	/**
+	 * Recalculate order totals based on order items
+	 *
+	 * This method recalculates the order subtotal and total when order items are modified
+	 * in the admin. It sums all product prices, adds delivery price, and updates the
+	 * order_subtotal and order_total meta fields.
+	 *
+	 * @since 2.3.6
+	 * @param int $post_id The order post ID
+	 * @return void
+	 */
+	private function recalculate_order_totals( int $post_id ) {
+		// Get order items
+		$order_items = get_post_meta( $post_id, 'myd_order_items', true );
+		if ( ! is_array( $order_items ) ) {
+			return;
+		}
+
+		// Calculate subtotal by summing all product prices
+		$subtotal = 0;
+		foreach ( $order_items as $item ) {
+			if ( isset( $item['product_price'] ) ) {
+				// Clean the price format (remove currency symbols and convert to float)
+				$price_clean = $this->parse_formatted_price( $item['product_price'] );
+				$subtotal += $price_clean;
+			}
+		}
+
+		// Get delivery price
+		$delivery_price = get_post_meta( $post_id, 'order_delivery_price', true );
+		$delivery_price_clean = $this->parse_formatted_price( $delivery_price );
+
+		// Calculate total
+		$total = $subtotal + $delivery_price_clean;
+
+		// Format prices using the store's formatting
+		$formatted_subtotal = \MydPro\Includes\Myd_Store_Formatting::format_price( $subtotal );
+		$formatted_total = \MydPro\Includes\Myd_Store_Formatting::format_price( $total );
+
+		// Update order meta
+		update_post_meta( $post_id, 'order_subtotal', sanitize_text_field( $formatted_subtotal ) );
+		update_post_meta( $post_id, 'order_total', sanitize_text_field( $formatted_total ) );
+	}
+
+	/**
+	 * Parse a formatted price string to float
+	 *
+	 * Removes currency symbols, thousands separators, and converts decimal separator to dot
+	 *
+	 * @since 2.3.6
+	 * @param string $price_string The formatted price string (e.g., "Bs. 1.234,56" or "$1,234.56")
+	 * @return float The parsed price as float
+	 */
+	private function parse_formatted_price( $price_string ) {
+		if ( empty( $price_string ) || ! is_string( $price_string ) ) {
+			return 0;
+		}
+
+		// Remove all non-numeric characters except dots, commas, and minus sign
+		$price_clean = preg_replace( '/[^0-9.,\-]/', '', $price_string );
+
+		// Get store's decimal separator
+		$decimal_separator = \MydPro\Includes\Store_Data::get_store_data( 'decimal_separator' );
+		if ( empty( $decimal_separator ) ) {
+			$decimal_separator = ',';
+		}
+
+		// Get thousands separator
+		$thousands_separator = \MydPro\Includes\Store_Data::get_store_data( 'thousands_separator' );
+		if ( empty( $thousands_separator ) ) {
+			$thousands_separator = '.';
+		}
+
+		// Remove thousands separator
+		$price_clean = str_replace( $thousands_separator, '', $price_clean );
+
+		// Replace decimal separator with dot
+		$price_clean = str_replace( $decimal_separator, '.', $price_clean );
+
+		return floatval( $price_clean );
 	}
 }
