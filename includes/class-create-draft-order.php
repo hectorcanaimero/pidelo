@@ -146,7 +146,7 @@ class Create_Draft_Order {
 	public function create() : void {
 		$data = array(
 			'post_title' => '#',
-			'post_status' => 'draft',
+			'post_status' => 'publish',
 			'post_type' => 'mydelivery-orders',
 		);
 
@@ -220,7 +220,18 @@ class Create_Draft_Order {
 		\update_post_meta( $this->id, 'order_delivery_price', sanitize_text_field( Myd_Store_Formatting::format_price( $this->shipping['price'] ?? '' ) ) );
 		\update_post_meta( $this->id, 'order_coupon', sanitize_text_field( $this->coupon->code ?? '' ) );
 		\update_post_meta( $this->id, 'order_table', sanitize_text_field( $this->shipping['table'] ?? '' ) );
-		\update_post_meta( $this->id, 'order_payment_status', 'waiting' );
+
+		// Check if payment should be skipped for order-in-store
+		$skip_payment_in_store = \get_option( 'myd-skip-payment-in-store' ) === 'yes';
+		$is_order_in_store = $this->type === 'order-in-store';
+
+		if ( $skip_payment_in_store && $is_order_in_store ) {
+			\update_post_meta( $this->id, 'order_payment_status', 'waiting' );
+			\update_post_meta( $this->id, 'order_payment_type', 'upon-delivery' );
+			\update_post_meta( $this->id, 'order_payment_method', 'Pago en Local' );
+		} else {
+			\update_post_meta( $this->id, 'order_payment_status', 'waiting' );
+		}
 		// \update_post_meta( $this->id, 'order_coupon_discount', sanitize_text_field( $this->coupon->code ?? '' ) );
 		\update_post_meta( $this->id, 'order_subtotal', sanitize_text_field( Myd_Store_Formatting::format_price( $this->subtotal ) ) );
 		\update_post_meta( $this->id, 'order_total', sanitize_text_field( Myd_Store_Formatting::format_price( $this->total ) ) );

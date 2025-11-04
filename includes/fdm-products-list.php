@@ -300,6 +300,7 @@ class Fdm_products_show {
 
 		\wp_enqueue_script( 'myd-create-order' );
 		\wp_enqueue_script( 'myd-payment-receipt' );
+		\wp_enqueue_script( 'myd-skip-payment-in-store' );
 		\wp_enqueue_style( 'myd-delivery-frontend' );
 
 		ob_start();

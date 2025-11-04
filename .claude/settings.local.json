@@ -1,18 +1,17 @@
 {
   "permissions": {
     "allow": [
-      "Responde siempre en español",
-      "Bash(gh issue create:*)",
-      "Bash(cat:*)",
-      "Bash(php:*)",
-      "Bash(git push:*)",
-      "Bash(git tag:*)",
-      "Bash(gh release create:*)",
-      "Bash(gh issue:*)",
-      "Read(//Users/al3jandro/project/wp/data/wp-content/**)",
+      "Bash(gh issue view:*)",
       "Bash(git add:*)",
-      "Bash(git commit -m \"$(cat <<''EOF''\nSimplificar lógica de nombre de instancia Evolution API\n\n- Nombre de instancia ahora se genera siempre desde fdm-business-name\n- Eliminado campo de entrada manual para nombre de instancia\n- Removida opción myd-evolution-instance-name\n- Una empresa = una instancia (slug del nombre de empresa)\n- Actualizado Evolution_Client, Instance_Manager y Evolution_Ajax\n- Botón de desconexión usa generación automática de nombre\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
+      "Bash(git commit:*)",
+      "Bash(git tag:*)",
+      "Bash(git push:*)",
+      "Bash(gh issue comment:*)",
+      "Bash(gh issue close:*)",
+      "Bash(gh release create:*)",
+      "Bash(git revert:*)"
     ],
-    "deny": []
+    "deny": [],
+    "ask": []
   }
 }

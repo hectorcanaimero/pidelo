@@ -174,6 +174,14 @@ class Settings extends Admin_Settings {
 				]
 			],
 			[
+				'name' => 'myd-skip-payment-in-store',
+				'option_group' => self::CONFIG_GROUP,
+				'args' => [
+					'sanitize_callback' => 'sanitize_text_field',
+					'default' => 'no',
+				]
+			],
+			[
 				'name' => 'myd-products-list-columns',
 				'option_group' => self::CONFIG_GROUP,
 				'args' => [

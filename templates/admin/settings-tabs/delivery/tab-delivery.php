@@ -66,6 +66,25 @@ if ( isset( $delivery_mode_options[0] ) && $delivery_mode_options[0] === 'initia
 
 			<tr>
 				<th scope="row">
+					<label for="myd-skip-payment-in-store"><?php esc_html_e( 'Skip payment for Order in Store', 'myd-delivery-pro' );?></label>
+				</th>
+				<td>
+					<label>
+						<input
+							type="checkbox"
+							name="myd-skip-payment-in-store"
+							id="myd-skip-payment-in-store"
+							value="yes"
+							<?php checked( get_option( 'myd-skip-payment-in-store' ), 'yes' ); ?>
+						>
+						<?php esc_html_e( 'Enable to skip payment section when order type is "Order in Store"', 'myd-delivery-pro' );?>
+					</label>
+					<p class="description"><?php esc_html_e( 'When enabled, orders placed as "Order in Store" (digital menu) will skip the payment section and be marked as paid automatically.', 'myd-delivery-pro' );?></p>
+				</td>
+			</tr>
+
+			<tr>
+				<th scope="row">
 					<label for="myd-delivery-mode"><?php esc_html_e( 'Delivery price mode', 'myd-delivery-pro' );?></label>
 				</th>
 				<td>

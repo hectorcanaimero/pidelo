@@ -5,8 +5,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 $online_payment_enabled = defined( 'SUMUPMYD_CURRENT_VERSION' );
+$skip_payment_in_store = get_option( 'myd-skip-payment-in-store' ) === 'yes';
+$hide_payment_class = $skip_payment_in_store ? ' myd-cart__payment--conditional' : '';
 ?>
-<div id="myd-cart-payment" class="myd-cart__payment">
+<div id="myd-cart-payment" class="myd-cart__payment<?php echo esc_attr( $hide_payment_class ); ?>" data-skip-payment-in-store="<?php echo esc_attr( $skip_payment_in_store ? 'yes' : 'no' ); ?>">
 	<div id="myd-cart-total-summary" class="myd-cart__payment-amount-details"></div>
 
 	<div class="myd-cart__checkout-payment">

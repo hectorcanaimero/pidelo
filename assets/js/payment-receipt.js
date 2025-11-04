@@ -74,7 +74,9 @@
         window.Myd.removeLoadingAnimation('.myd-cart__button-text');
 
         // Mostrar alerta nativa (mejor UX en mobile)
-        alert('⚠️ Comprobante de Pago Obligatorio\n\nPor favor, adjunta tu comprobante de pago para continuar con el pedido.');
+        alert(
+          '⚠️ Comprobante de Pago Obligatorio\n\nPor favor, adjunta tu comprobante de pago para continuar con el pedido.',
+        );
 
         // Hacer scroll al campo y hacer focus (con timeout para mobile)
         setTimeout(() => {
