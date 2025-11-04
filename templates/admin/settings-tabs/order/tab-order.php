@@ -203,6 +203,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<code>{payment-change}</code> - <?php esc_html_e( 'Payment Change (applied for cash payments)', 'myd-delivery-pro' ); ?>.
 		</li>
 		<li>
+			<code>{payment-receipt-link}</code> - <?php esc_html_e( 'Payment Receipt Link (public URL to download the payment receipt)', 'myd-delivery-pro' ); ?>.
+		</li>
+		<li>
 			<code>{customer-name}</code> - <?php esc_html_e( 'Customer Name', 'myd-delivery-pro' ); ?>.
 		</li>
 		<li>

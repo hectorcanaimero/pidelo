@@ -61,6 +61,16 @@ class Custom_Message_Whatsapp {
 		$this->order_data['address_zipcode'] = \get_post_meta( $this->order_id, 'order_zipcode', true );
 		$this->order_data['shipping_price'] = \get_post_meta( $this->order_id, 'order_delivery_price', true );
 		$this->order_data['shipping_table'] = \get_post_meta( $this->order_id, 'order_table', true );
+
+		// Get payment receipt URL if exists
+		$payment_receipt_id = \get_post_meta( $this->order_id, 'order_payment_receipt', true );
+		$this->order_data['payment_receipt_url'] = '';
+		if ( ! empty( $payment_receipt_id ) ) {
+			$receipt_url = \wp_get_attachment_url( $payment_receipt_id );
+			if ( $receipt_url ) {
+				$this->order_data['payment_receipt_url'] = $receipt_url;
+			}
+		}
 	}
 
 	/**
@@ -129,6 +139,7 @@ class Custom_Message_Whatsapp {
 			'{payment-status}' => $this->order_data['payment_status'],
 			'{payment-method}' => $this->order_data['payment_method'],
 			'{payment-change}' => Store_Data::get_store_data( 'currency_simbol' ) . ' ' . $this->order_data['payment_change'],
+			'{payment-receipt-link}' => $this->order_data['payment_receipt_url'],
 			'{customer-name}' => $this->order_data['customer_name'],
 			'{customer-phone}' => $this->order_data['customer_phone'],
 			'{customer-address}' => $this->order_data['address_street'],

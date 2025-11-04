@@ -10,7 +10,8 @@
       "Bash(gh issue close:*)",
       "Bash(gh release create:*)",
       "Bash(git revert:*)",
-      "Bash(php -l:*)"
+      "Bash(php -l:*)",
+      "Bash(gh auth:*)"
     ],
     "deny": [],
     "ask": []
