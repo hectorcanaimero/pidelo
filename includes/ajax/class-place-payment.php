@@ -18,6 +18,8 @@ class Place_Payment {
 	public function __construct() {
 		\add_action( 'wp_ajax_myd_order_place_payment', array( $this, 'place_payment' ) );
 		\add_action( 'wp_ajax_nopriv_myd_order_place_payment', array( $this, 'place_payment' ) );
+		\add_action( 'wp_ajax_myd_order_update_status_in_store', array( $this, 'update_order_status_in_store' ) );
+		\add_action( 'wp_ajax_nopriv_myd_order_update_status_in_store', array( $this, 'update_order_status_in_store' ) );
 	}
 
 	/**
@@ -172,6 +174,62 @@ class Place_Payment {
 		error_log( '[MYD Payment] Sending response: ' . print_r( $response, true ) );
 
 		echo json_encode( $response, true );
+		\wp_die();
+	}
+
+	/**
+	 * Update order status to 'new' for order-in-store with skip payment
+	 *
+	 * @return void
+	 */
+	public function update_order_status_in_store() {
+		error_log( '[MYD Payment] update_order_status_in_store called' );
+
+		$nonce = $_POST['sec'] ?? null;
+		if ( ! $nonce || ! \wp_verify_nonce( $nonce, 'myd-create-order' ) ) {
+			error_log( '[MYD Payment] Security check failed for status update' );
+			\wp_send_json_error(
+				array(
+					'message' => \esc_html__( 'Security check failed.', 'myd-delivery-pro' ),
+				)
+			);
+			\wp_die();
+		}
+
+		$order_id = isset( $_POST['order_id'] ) ? (int) $_POST['order_id'] : 0;
+
+		if ( ! $order_id ) {
+			error_log( '[MYD Payment] Invalid order ID' );
+			\wp_send_json_error(
+				array(
+					'message' => \esc_html__( 'Invalid order ID.', 'myd-delivery-pro' ),
+				)
+			);
+			\wp_die();
+		}
+
+		error_log( '[MYD Payment] Updating order status to new for order: ' . $order_id );
+
+		// Update post status to publish
+		\wp_update_post(
+			array(
+				'ID' => $order_id,
+				'post_status' => 'publish',
+			)
+		);
+
+		// Update order status to 'new'
+		\update_post_meta( $order_id, 'order_status', 'new' );
+
+		error_log( '[MYD Payment] Order status updated successfully' );
+
+		\wp_send_json_success(
+			array(
+				'order_id' => $order_id,
+				'status' => 'new',
+				'message' => \esc_html__( 'Order status updated successfully.', 'myd-delivery-pro' ),
+			)
+		);
 		\wp_die();
 	}
 }

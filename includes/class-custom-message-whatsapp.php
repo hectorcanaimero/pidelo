@@ -71,6 +71,81 @@ class Custom_Message_Whatsapp {
 				$this->order_data['payment_receipt_url'] = $receipt_url;
 			}
 		}
+
+		// Get converted amounts in Bolívares if conversion is enabled
+		$this->order_data['total_bolivares'] = $this->get_converted_amount( $this->order_data['total'] );
+		$this->order_data['subtotal_bolivares'] = $this->get_converted_amount( $this->order_data['subtotal'] );
+		$this->order_data['shipping_price_bolivares'] = $this->get_converted_amount( $this->order_data['shipping_price'] );
+	}
+
+	/**
+	 * Get converted amount in Bolívares (VEF)
+	 *
+	 * @param string|float $amount The amount to convert
+	 * @return string Formatted amount in Bolívares or empty string if conversion is not available
+	 */
+	private function get_converted_amount( $amount ) : string {
+		// Clean the amount format (remove currency symbols and convert to float)
+		$amount_clean = $this->parse_formatted_price( $amount );
+
+		if ( $amount_clean <= 0 ) {
+			return '';
+		}
+
+		// Check if conversion is enabled
+		if ( ! Currency_Converter::is_conversion_enabled() ) {
+			return '';
+		}
+
+		// Get conversion
+		$conversion = Currency_Converter::get_conversion( $amount_clean );
+
+		if ( $conversion === false ) {
+			return '';
+		}
+
+		// Format the converted amount
+		$formatted_amount = Currency_Converter::format_vef_amount( $conversion['amount'] );
+
+		return $conversion['currency_symbol'] . ' ' . $formatted_amount;
+	}
+
+	/**
+	 * Parse a formatted price string to float
+	 *
+	 * @param string $price_string The formatted price string (e.g., "Bs. 1.234,56" or "$1,234.56")
+	 * @return float The parsed price as float
+	 */
+	private function parse_formatted_price( $price_string ) {
+		if ( empty( $price_string ) || ! is_string( $price_string ) ) {
+			if ( is_numeric( $price_string ) ) {
+				return floatval( $price_string );
+			}
+			return 0;
+		}
+
+		// Remove all non-numeric characters except dots, commas, and minus sign
+		$price_clean = preg_replace( '/[^0-9.,\-]/', '', $price_string );
+
+		// Get store's decimal separator
+		$decimal_separator = Store_Data::get_store_data( 'decimal_separator' );
+		if ( empty( $decimal_separator ) ) {
+			$decimal_separator = ',';
+		}
+
+		// Get thousands separator
+		$thousands_separator = Store_Data::get_store_data( 'thousands_separator' );
+		if ( empty( $thousands_separator ) ) {
+			$thousands_separator = '.';
+		}
+
+		// Remove thousands separator
+		$price_clean = str_replace( $thousands_separator, '', $price_clean );
+
+		// Replace decimal separator with dot
+		$price_clean = str_replace( $decimal_separator, '.', $price_clean );
+
+		return floatval( $price_clean );
 	}
 
 	/**
@@ -131,7 +206,9 @@ class Custom_Message_Whatsapp {
 			'{order-date-time}' => $this->order_data['date'],
 			'{order-coupon-code}' => $this->order_data['coupon_code'],
 			'{order-total}' => Store_Data::get_store_data( 'currency_simbol' ) . ' ' . $this->order_data['total'],
+			'{order-total-bolivares}' => $this->order_data['total_bolivares'],
 			'{order-subtotal}' => Store_Data::get_store_data( 'currency_simbol' ) . ' ' . $this->order_data['subtotal'],
+			'{order-subtotal-bolivares}' => $this->order_data['subtotal_bolivares'],
 			'{order-products}' => implode( $products ),
 			'{order-table}' => $this->order_data['shipping_table'],
 			'{order-track-page}' => \get_permalink( \get_option( 'fdm-page-order-track' ) ) . '?hash=' . base64_encode( $this->order_id ),
@@ -148,6 +225,7 @@ class Custom_Message_Whatsapp {
 			'{customer-address-neighborhood}' => $this->order_data['address_neighborhood'],
 			'{customer-address-zipcode}' => $this->order_data['address_zipcode'],
 			'{shipping-price}' => Store_Data::get_store_data( 'currency_simbol' ) . ' ' . $this->order_data['shipping_price'],
+			'{shipping-price-bolivares}' => $this->order_data['shipping_price_bolivares'],
 		);
 
 		$order_type = $this->order_data['type'];

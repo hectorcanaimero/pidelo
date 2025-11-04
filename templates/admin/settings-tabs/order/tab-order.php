@@ -182,6 +182,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<code>{order-total}</code> - <?php esc_html_e( 'Order Total', 'myd-delivery-pro' ); ?>.
 		</li>
 		<li>
+			<code>{order-total-bolivares}</code> - <?php esc_html_e( 'Order Total in Bolívares (VEF) - only shown if currency conversion is enabled', 'myd-delivery-pro' ); ?>.
+		</li>
+		<li>
+			<code>{order-subtotal-bolivares}</code> - <?php esc_html_e( 'Order Subtotal in Bolívares (VEF) - only shown if currency conversion is enabled', 'myd-delivery-pro' ); ?>.
+		</li>
+		<li>
 			<code>{order-products}</code> - <?php esc_html_e( "Order Products. This token is the result of the configuration above, don't forget to add it", 'myd-delivery-pro' ); ?>.
 		</li>
 		<li>
@@ -228,6 +234,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</li>
 		<li>
 			<code>{shipping-price}</code> - <?php esc_html_e( 'Shipping Price', 'myd-delivery-pro' ); ?>.
+		</li>
+		<li>
+			<code>{shipping-price-bolivares}</code> - <?php esc_html_e( 'Shipping Price in Bolívares (VEF) - only shown if currency conversion is enabled', 'myd-delivery-pro' ); ?>.
 		</li>
 	</ul>
 

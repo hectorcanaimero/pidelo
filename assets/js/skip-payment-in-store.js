@@ -199,6 +199,27 @@
             console.log('[Skip Payment] Order ID saved:', savedOrderId);
           }
 
+          // Update order status to 'new' via AJAX
+          try {
+            const formData = new FormData();
+            formData.append('action', 'myd_order_update_status_in_store');
+            formData.append('sec', ajax_object.order_nonce);
+            formData.append('order_id', savedOrderId);
+
+            const response = await fetch(ajax_object.ajax_url, {
+              method: 'POST',
+              body: formData,
+              credentials: 'same-origin',
+            });
+
+            if (response.ok) {
+              const responseData = await response.json();
+              console.log('[Skip Payment] Order status updated:', responseData);
+            }
+          } catch (error) {
+            console.error('[Skip Payment] Error updating order status:', error);
+          }
+
           // Update order number immediately
           const finishedOrderNumber = document.getElementById('finished-order-number');
           if (finishedOrderNumber && savedOrderId) {
