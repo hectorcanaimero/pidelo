@@ -5,6 +5,9 @@
 (function () {
   'use strict';
 
+  // Storage key for persisting payment method selection
+  const STORAGE_KEY_PAYMENT_METHOD = 'myd_selected_payment_method';
+
   /**
    * Verifica si un elemento es visible en el DOM (funciona en mobile y desktop)
    */
@@ -34,6 +37,88 @@
   }
 
   /**
+   * Guarda el método de pago seleccionado en sessionStorage
+   */
+  function saveSelectedPaymentMethod(value) {
+    if (value) {
+      try {
+        sessionStorage.setItem(STORAGE_KEY_PAYMENT_METHOD, value);
+      } catch (e) {
+        console.warn('Could not save payment method to sessionStorage:', e);
+      }
+    }
+  }
+
+  /**
+   * Restaura el método de pago seleccionado desde sessionStorage
+   */
+  function restoreSelectedPaymentMethod() {
+    try {
+      const savedMethod = sessionStorage.getItem(STORAGE_KEY_PAYMENT_METHOD);
+      if (savedMethod) {
+        const radioInput = document.querySelector(
+          `.myd-cart__payment-input-option[value="${savedMethod}"]`
+        );
+        if (radioInput && !radioInput.checked) {
+          radioInput.checked = true;
+          // Disparar evento change para actualizar la UI
+          radioInput.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      }
+    } catch (e) {
+      console.warn('Could not restore payment method from sessionStorage:', e);
+    }
+  }
+
+  /**
+   * Limpia el método de pago guardado (se llama al completar el pedido)
+   */
+  function clearSavedPaymentMethod() {
+    try {
+      sessionStorage.removeItem(STORAGE_KEY_PAYMENT_METHOD);
+    } catch (e) {
+      console.warn('Could not clear payment method from sessionStorage:', e);
+    }
+  }
+
+  /**
+   * Inicializa los event listeners para los radio buttons de pago
+   */
+  function initPaymentMethodPersistence() {
+    const paymentRadios = document.querySelectorAll('.myd-cart__payment-input-option');
+
+    paymentRadios.forEach((radio) => {
+      radio.addEventListener('change', function () {
+        if (this.checked) {
+          saveSelectedPaymentMethod(this.value);
+        }
+      });
+    });
+
+    // Event listener para el file input - restaurar selección después de adjuntar
+    const fileInput = document.getElementById('input-payment-receipt');
+    if (fileInput) {
+      fileInput.addEventListener('change', function () {
+        // Pequeño delay para asegurar que el DOM se actualice
+        setTimeout(restoreSelectedPaymentMethod, 100);
+      });
+    }
+
+    // Restaurar selección al cargar la página
+    restoreSelectedPaymentMethod();
+
+    // También restaurar cuando se abren/cierran los <details> de métodos de pago
+    const paymentDetails = document.querySelectorAll('.myd-cart__payment-options-container details');
+    paymentDetails.forEach((details) => {
+      details.addEventListener('toggle', function () {
+        if (this.open) {
+          setTimeout(restoreSelectedPaymentMethod, 50);
+        }
+      });
+    });
+  }
+
+  /**
    * Override the placePayment method to support file uploads
    */
   function overridePlacePaymentMethod() {
@@ -47,6 +132,9 @@
 
     // Override with new method that supports files
     window.MydOrder.placePayment = async function () {
+      // Restaurar el método de pago antes de procesar
+      restoreSelectedPaymentMethod();
+
       // Get the payment type first
       const paymentType = this.payment.get().type;
 
@@ -145,6 +233,9 @@
         window.MydCheckout.elements.nextButton.style.display = 'none';
         window.Myd.newEvent('MydOrderComplete', { orderTotal: this.total });
 
+        // Limpiar el método de pago guardado después de completar el pedido
+        clearSavedPaymentMethod();
+
         if (mydStoreInfo.autoRedirect === 'yes') {
           window.location.href = responseData.whatsappLink;
         }
@@ -160,8 +251,12 @@
 
   // Initialize when DOM is ready
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', overridePlacePaymentMethod);
+    document.addEventListener('DOMContentLoaded', function () {
+      overridePlacePaymentMethod();
+      initPaymentMethodPersistence();
+    });
   } else {
     overridePlacePaymentMethod();
+    initPaymentMethodPersistence();
   }
 })();
