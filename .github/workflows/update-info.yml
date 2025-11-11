@@ -48,11 +48,37 @@ jobs:
       - name: Extract changelog
         id: changelog
         run: |
-          # Get the latest 3 versions from CHANGELOG.md or git log
-          if [ -f "CHANGELOG.md" ]; then
-            CHANGELOG=$(head -30 CHANGELOG.md | sed 's/"/\\"/g' | awk 'BEGIN{RS=""}{gsub(/\n/,"\\n")}1')
+          if [ "${{ github.event_name }}" == "release" ]; then
+            # Extract from release notes
+            RELEASE_NOTES="${{ github.event.release.body }}"
+
+            if [ -n "$RELEASE_NOTES" ]; then
+              # Convert markdown to HTML
+              CHANGELOG="<h4>${{ steps.version.outputs.version }}</h4>"
+
+              # Convert release notes: replace ### with <h4>, * with <li>, wrap in <ul>
+              FORMATTED=$(echo "$RELEASE_NOTES" | \
+                sed 's/^### \(.*\)$/<\/ul><h4>\1<\/h4><ul>/g' | \
+                sed 's/^- \(.*\)$/<li>\1<\/li>/g' | \
+                sed 's/^* \(.*\)$/<li>\1<\/li>/g')
+
+              CHANGELOG="${CHANGELOG}<ul>${FORMATTED}</ul>"
+
+              # Clean up extra </ul> at start
+              CHANGELOG=$(echo "$CHANGELOG" | sed 's|<ul></ul>||g')
+            else
+              # Fallback to git log
+              CHANGELOG="<h4>${{ steps.version.outputs.version }}</h4><ul>"
+              git log --pretty=format:"<li>%s</li>" -10 | head -5 >> /tmp/changelog.txt
+              CHANGELOG="$CHANGELOG$(cat /tmp/changelog.txt)</ul>"
+            fi
+          elif [ -f "CHANGELOG.md" ]; then
+            # Use CHANGELOG.md if exists
+            CHANGELOG=$(head -50 CHANGELOG.md | sed 's/^## \(.*\)$/<h4>\1<\/h4>/g' | \
+              sed 's/^- \(.*\)$/<li>\1<\/li>/g' | \
+              sed 's/^\* \(.*\)$/<li>\1<\/li>/g')
           else
-            # Generate from recent commits
+            # Fallback to git log
             CHANGELOG="<h4>${{ steps.version.outputs.version }}</h4><ul>"
             git log --pretty=format:"<li>%s</li>" -10 | head -5 >> /tmp/changelog.txt
             CHANGELOG="$CHANGELOG$(cat /tmp/changelog.txt)</ul>"
@@ -61,6 +87,32 @@ jobs:
           # Escape for JSON
           CHANGELOG=$(echo "$CHANGELOG" | jq -Rs .)
           echo "changelog=$CHANGELOG" >> $GITHUB_OUTPUT
+
+          # Preview in logs
+          echo "Changelog preview:"
+          echo "$CHANGELOG" | jq -r .
+
+      - name: Validate ZIP exists (for release events)
+        if: github.event_name == 'release'
+        run: |
+          DOWNLOAD_URL="https://github.com/${{ github.repository }}/releases/download/v${{ steps.version.outputs.version }}/myd-delivery-pro.zip"
+
+          echo "Checking if ZIP exists at: $DOWNLOAD_URL"
+
+          # Wait a moment for GitHub to process the release asset
+          sleep 5
+
+          # Check if ZIP is accessible
+          HTTP_CODE=$(curl -o /dev/null -s -w "%{http_code}" -L "$DOWNLOAD_URL")
+
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "⚠️ Warning: ZIP file not found (HTTP $HTTP_CODE)"
+            echo "Make sure to upload myd-delivery-pro.zip to the release"
+            echo "Download URL: $DOWNLOAD_URL"
+            # Don't fail, just warn
+          else
+            echo "✅ ZIP file is accessible"
+          fi
 
       - name: Generate update-info.json
         run: |
@@ -93,10 +145,28 @@ jobs:
           }
           EOF
 
-          # Validate JSON
-          cat update-info.json | jq . > /tmp/valid.json
+          # Validate JSON structure
+          if ! jq empty update-info.json 2>/dev/null; then
+            echo "❌ Error: Invalid JSON structure"
+            cat update-info.json
+            exit 1
+          fi
+
+          # Validate required fields
+          REQUIRED_FIELDS=("version" "download_url" "requires" "tested" "requires_php")
+          for field in "${REQUIRED_FIELDS[@]}"; do
+            if ! jq -e ".$field" update-info.json > /dev/null; then
+              echo "❌ Error: Missing required field: $field"
+              exit 1
+            fi
+          done
+
+          # Format JSON properly
+          jq . update-info.json > /tmp/valid.json
           mv /tmp/valid.json update-info.json
 
+          echo "✅ JSON validated successfully"
+          echo ""
           echo "Generated update-info.json:"
           cat update-info.json
 
@@ -125,9 +195,66 @@ jobs:
           echo "## Plugin Update Info Generated ✅" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Version:** ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
-          echo "**URL:** https://${{ github.repository_owner }}.github.io/$(basename ${{ github.repository }})/update-info.json" >> $GITHUB_STEP_SUMMARY
+          echo "**Update URL:** https://${{ github.repository_owner }}.github.io/$(basename ${{ github.repository }})/update-info.json" >> $GITHUB_STEP_SUMMARY
+          echo "**Download URL:** https://github.com/${{ github.repository }}/releases/download/v${{ steps.version.outputs.version }}/myd-delivery-pro.zip" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Testing:" >> $GITHUB_STEP_SUMMARY
+          echo '```bash' >> $GITHUB_STEP_SUMMARY
+          echo "# Verify update-info.json" >> $GITHUB_STEP_SUMMARY
+          echo "curl https://${{ github.repository_owner }}.github.io/$(basename ${{ github.repository }})/update-info.json | jq ." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "# Verify ZIP download" >> $GITHUB_STEP_SUMMARY
+          echo "curl -I https://github.com/${{ github.repository }}/releases/download/v${{ steps.version.outputs.version }}/myd-delivery-pro.zip" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Content:" >> $GITHUB_STEP_SUMMARY
           echo '```json' >> $GITHUB_STEP_SUMMARY
           cat update-info.json >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Notify on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issueBody = `## ❌ Update Info Workflow Failed
+
+            The workflow to update \`update-info.json\` has failed.
+
+            **Version:** ${{ steps.version.outputs.version }}
+            **Workflow Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+            ### Possible Causes:
+            - Invalid JSON structure
+            - Missing required fields
+            - ZIP file not uploaded to release
+            - gh-pages branch doesn't exist
+
+            ### Next Steps:
+            1. Check the workflow logs above
+            2. Verify the release has the ZIP file attached
+            3. Manually run the workflow if needed
+
+            ---
+            *This issue was created automatically by GitHub Actions*`;
+
+            // Only create issue if this is a release event (not manual trigger)
+            if (context.eventName === 'release') {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `[Automation] Update Info Failed for v${{ steps.version.outputs.version }}`,
+                body: issueBody,
+                labels: ['automation', 'bug']
+              });
+            }
+
+            // Always post a comment if this is triggered from a release
+            if (context.payload.release) {
+              await github.rest.repos.createCommitComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                commit_sha: context.sha,
+                body: '⚠️ Update info workflow failed. Check the Actions tab for details.'
+              });
+            }
