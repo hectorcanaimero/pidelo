@@ -277,6 +277,104 @@ Authorization: Bearer {{token}}
 GET http://localhost:8080/wp-json/myd-delivery/v1/settings?group=appearance
 Authorization: Bearer {{token}}
 
+### Update setting with boolean (test boolean handling)
+PUT http://localhost:8080/wp-json/myd-delivery/v1/settings/fdm-payment-in-cash
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "value": false
+}
+
+### Update setting with color (test color validation)
+PUT http://localhost:8080/wp-json/myd-delivery/v1/settings/fdm-principal-color
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "value": "#ff5733"
+}
+
+### Update setting with email (test email validation)
+PUT http://localhost:8080/wp-json/myd-delivery/v1/settings/fdm-business-email
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "value": "newemail@restaurant.com"
+}
+
+### Update setting with invalid email (should fail)
+PUT http://localhost:8080/wp-json/myd-delivery/v1/settings/fdm-business-email
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "value": "invalid-email"
+}
+
+### Update setting with invalid color (should fail)
+PUT http://localhost:8080/wp-json/myd-delivery/v1/settings/fdm-principal-color
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "value": "red"
+}
+
+### Update numeric setting
+PUT http://localhost:8080/wp-json/myd-delivery/v1/settings/fdm-minimum-order
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "value": 25.50
+}
+
+### Update decimal places setting
+PUT http://localhost:8080/wp-json/myd-delivery/v1/settings/fdm-number-decimal
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "value": 2
+}
+
+### Update WhatsApp number (test phone handling)
+PUT http://localhost:8080/wp-json/myd-delivery/v1/settings/fdm-whatsapp-number
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "value": "+1-555-DELIVERY"
+}
+
+### Get delivery settings group
+GET http://localhost:8080/wp-json/myd-delivery/v1/settings?group=delivery
+Authorization: Bearer {{token}}
+
+### Get advanced settings group
+GET http://localhost:8080/wp-json/myd-delivery/v1/settings?group=advanced
+Authorization: Bearer {{token}}
+
+### Update multiple settings with mixed types
+PUT http://localhost:8080/wp-json/myd-delivery/v1/settings
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "fdm-business-name": "Test Restaurant Updated",
+  "fdm-payment-in-cash": true,
+  "fdm-email-notifications": false,
+  "fdm-minimum-order": 20.00,
+  "fdm-principal-color": "#1a1a1a",
+  "fdm-estimate-time-delivery": "45-60 minutes"
+}
+
+### Test setting that doesn't exist (should return 404)
+GET http://localhost:8080/wp-json/myd-delivery/v1/settings/nonexistent-setting
+Authorization: Bearer {{token}}
+
 ### SSE Order Status Tracking (will show initial stream response)
 GET http://localhost:8080/wp-json/myd-delivery/v1/order-status-tracking?hash=NTM=
 Accept: text/event-stream

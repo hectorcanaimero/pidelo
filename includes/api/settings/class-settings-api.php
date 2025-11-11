@@ -222,16 +222,15 @@ class Settings_Api {
 				continue;
 			}
 
-			$result = update_option( $key, $sanitized_value );
-			if ( $result ) {
-				$updated_settings[ $key ] = $sanitized_value;
-			}
+			// update_option returns false if value is unchanged, which is not an error
+			update_option( $key, $sanitized_value );
+			$updated_settings[ $key ] = $sanitized_value;
 		}
 
 		if ( ! empty( $errors ) ) {
-			return new \WP_Error( 'validation_failed', __( 'Some settings could not be updated', 'myd-delivery-pro' ), array( 
+			return new \WP_Error( 'validation_failed', __( 'Some settings could not be updated', 'myd-delivery-pro' ), array(
 				'status' => 400,
-				'errors' => $errors 
+				'errors' => $errors
 			) );
 		}
 
@@ -260,15 +259,18 @@ class Settings_Api {
 			return $sanitized_value;
 		}
 
-		$result = update_option( $key, $sanitized_value );
+		// update_option always updates the value, returns false only if unchanged
+		update_option( $key, $sanitized_value );
 
-		if ( ! $result && get_option( $key ) !== $sanitized_value ) {
+		// Verify the value was actually saved
+		$saved_value = get_option( $key );
+		if ( $saved_value !== $sanitized_value ) {
 			return new \WP_Error( 'update_failed', __( 'Failed to update setting', 'myd-delivery-pro' ), array( 'status' => 500 ) );
 		}
 
 		$response = array(
 			'key' => $key,
-			'value' => $sanitized_value,
+			'value' => $this->format_setting_value( $sanitized_value ),
 			'message' => __( 'Setting updated successfully', 'myd-delivery-pro' ),
 		);
 
@@ -353,7 +355,11 @@ class Settings_Api {
 
 		// Convert numeric strings to numbers where appropriate
 		if ( is_numeric( $value ) ) {
-			return is_float( $value + 0 ) ? floatval( $value ) : intval( $value );
+			// Check if it contains a decimal point to determine float vs int
+			if ( strpos( $value, '.' ) !== false ) {
+				return floatval( $value );
+			}
+			return intval( $value );
 		}
 
 		return $value;
@@ -363,9 +369,16 @@ class Settings_Api {
 	 * Sanitize setting value
 	 */
 	private function sanitize_setting_value( $key, $value ) {
-		// Handle boolean values
-		if ( in_array( $key, array( 'fdm-payment-in-cash', 'fdm-notification-sound', 'fdm-email-notifications', 'fdm-sms-notifications' ) ) ) {
-			return $value ? 'yes' : 'no';
+		// Handle boolean values - accept both boolean and string representations
+		if ( in_array( $key, array( 'fdm-payment-in-cash', 'fdm-notification-sound', 'fdm-email-notifications', 'fdm-sms-notifications', 'myd-payment-receipt-required' ) ) ) {
+			// Handle various boolean representations
+			if ( is_bool( $value ) ) {
+				return $value ? 'yes' : 'no';
+			}
+			if ( $value === 'yes' || $value === 'true' || $value === '1' || $value === 1 ) {
+				return 'yes';
+			}
+			return 'no';
 		}
 
 		// Handle numeric values
@@ -379,16 +392,25 @@ class Settings_Api {
 
 		// Handle color values
 		if ( strpos( $key, 'color' ) !== false ) {
-			if ( ! preg_match( '/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/', $value ) ) {
+			$value = sanitize_text_field( $value );
+			if ( ! empty( $value ) && ! preg_match( '/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/', $value ) ) {
 				return new \WP_Error( 'invalid_color', __( 'Invalid color format. Use hex format like #FF0000', 'myd-delivery-pro' ), array( 'status' => 400 ) );
 			}
+			return $value;
 		}
 
 		// Handle email values
 		if ( strpos( $key, 'email' ) !== false && ! empty( $value ) ) {
-			if ( ! is_email( $value ) ) {
+			$sanitized_email = sanitize_email( $value );
+			if ( ! is_email( $sanitized_email ) ) {
 				return new \WP_Error( 'invalid_email', __( 'Invalid email format', 'myd-delivery-pro' ), array( 'status' => 400 ) );
 			}
+			return $sanitized_email;
+		}
+
+		// Handle phone numbers - preserve + and - characters
+		if ( strpos( $key, 'phone' ) !== false || strpos( $key, 'whatsapp' ) !== false ) {
+			return sanitize_text_field( $value );
 		}
 
 		// Default sanitization
@@ -430,5 +452,3 @@ class Settings_Api {
 		return $schema;
 	}
 }
-
-new Settings_Api();
