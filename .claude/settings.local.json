@@ -11,7 +11,11 @@
       "Bash(gh release create:*)",
       "Bash(git revert:*)",
       "Bash(php -l:*)",
-      "Bash(gh auth:*)"
+      "Bash(gh auth:*)",
+      "Bash(gh release list:*)",
+      "Bash(gh issue create:*)",
+      "Bash(wp rest route list:*)",
+      "Bash(python3:*)"
     ],
     "deny": [],
     "ask": []

@@ -1,0 +1,2003 @@
+openapi: 3.0.3
+info:
+  title: MyD Delivery Pro API
+  description: |
+    API REST completa para el plugin MyD Delivery Pro de WordPress.
+    Esta API permite administrar completamente el sistema de delivery desde aplicaciones móviles o externas.
+
+    ## Autenticación
+    La API utiliza WordPress Application Passwords o JWT para autenticación.
+
+    ### WordPress Application Passwords
+    ```
+    Authorization: Basic <base64(username:app_password)>
+    ```
+
+    ### JWT (Recomendado para apps móviles)
+    ```
+    Authorization: Bearer <jwt_token>
+    ```
+
+    ## Rate Limiting
+    La API está limitada a 100 requests por minuto por usuario.
+
+    ## Errores
+    La API utiliza códigos de estado HTTP estándar:
+    - 200: Éxito
+    - 400: Solicitud incorrecta
+    - 401: No autenticado
+    - 403: Prohibido
+    - 404: No encontrado
+    - 500: Error del servidor
+
+  version: 2.3.8
+  contact:
+    name: PideAI Support
+    url: https://pideai.com
+    email: support@pideai.com
+  license:
+    name: GPL-2.0+
+    url: https://www.gnu.org/licenses/gpl-2.0.txt
+
+servers:
+  - url: https://your-domain.com/wp-json/myd-delivery/v1
+    description: Servidor de producción
+  - url: http://localhost/wp-json/myd-delivery/v1
+    description: Servidor de desarrollo
+
+tags:
+  - name: Authentication
+    description: Autenticación y gestión de tokens
+  - name: Products
+    description: Gestión de productos del catálogo
+  - name: Categories
+    description: Gestión de categorías de productos
+  - name: Orders
+    description: Gestión de órdenes y pedidos
+  - name: Customers
+    description: Gestión de clientes
+  - name: Coupons
+    description: Gestión de cupones de descuento
+  - name: Cart
+    description: Gestión del carrito de compras
+  - name: Settings
+    description: Configuración del sistema
+  - name: Reports
+    description: Reportes y estadísticas
+  - name: Media
+    description: Gestión de archivos multimedia
+  - name: WhatsApp
+    description: Integración con WhatsApp
+
+paths:
+  # ============================================
+  # AUTHENTICATION ENDPOINTS
+  # ============================================
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Iniciar sesión
+      description: Autentica un usuario y devuelve un token JWT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                  example: admin
+                password:
+                  type: string
+                  format: password
+                  example: mypassword
+      responses:
+        '200':
+          description: Autenticación exitosa
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  token:
+                    type: string
+                    description: JWT token
+                    example: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL3lvdXItZG9tYWluLmNvbSIsImlhdCI6MTY0MDk5NTIwMCwiZXhwIjoxNjQxMDgxNjAwLCJkYXRhIjp7InVzZXJfaWQiOjEsInVzZXJfbG9naW4iOiJhZG1pbiIsInVzZXJfZW1haWwiOiJhZG1pbkB0ZXN0LmNvbSJ9fQ.abc123
+                  user:
+                    $ref: '#/components/schemas/User'
+                  expires_in:
+                    type: integer
+                    description: Tiempo de expiración en segundos
+                    example: 86400
+              example:
+                success: true
+                token: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+                user:
+                  id: 1
+                  username: "admin"
+                  email: "admin@test.com"
+                  display_name: "Administrator"
+                  roles: ["administrator"]
+                  capabilities:
+                    manage_options: true
+                    manage_orders: true
+                    upload_files: true
+                expires_in: 86400
+        '401':
+          description: Credenciales inválidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                code: "invalid_credentials"
+                message: "Invalid username or password"
+                data:
+                  status: 401
+
+  /auth/refresh:
+    post:
+      tags:
+        - Authentication
+      summary: Renovar token
+      description: Renueva un token JWT existente
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Token renovado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  expires_in:
+                    type: integer
+
+  /auth/validate:
+    get:
+      tags:
+        - Authentication
+      summary: Validar token
+      description: Valida si el token actual es válido
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Token válido
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                  user:
+                    $ref: '#/components/schemas/User'
+
+  # ============================================
+  # PRODUCTS ENDPOINTS
+  # ============================================
+  /products:
+    get:
+      tags:
+        - Products
+      summary: Listar productos
+      description: Obtiene una lista paginada de productos
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+            maximum: 100
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: available
+          in: query
+          schema:
+            type: string
+            enum: [show, hide, not-available]
+      responses:
+        '200':
+          description: Lista de productos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  products:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+                  total:
+                    type: integer
+                  pages:
+                    type: integer
+                  current_page:
+                    type: integer
+                  per_page:
+                    type: integer
+
+    post:
+      tags:
+        - Products
+      summary: Crear producto
+      description: Crea un nuevo producto en el catálogo
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductInput'
+      responses:
+        '200':
+          description: Producto creado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '400':
+          description: Datos inválidos
+
+  /products/{id}:
+    get:
+      tags:
+        - Products
+      summary: Obtener producto
+      description: Obtiene un producto específico por ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Producto encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '404':
+          description: Producto no encontrado
+
+    put:
+      tags:
+        - Products
+      summary: Actualizar producto
+      description: Actualiza un producto existente
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductInput'
+      responses:
+        '200':
+          description: Producto actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+
+    delete:
+      tags:
+        - Products
+      summary: Eliminar producto
+      description: Elimina un producto del catálogo
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Producto eliminado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted:
+                    type: boolean
+                  id:
+                    type: integer
+
+  # ============================================
+  # CATEGORIES ENDPOINTS
+  # ============================================
+  /categories:
+    get:
+      tags:
+        - Categories
+      summary: Listar categorías
+      description: Obtiene todas las categorías de productos
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Lista de categorías
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  categories:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Category'
+              examples:
+                success:
+                  summary: Lista de categorías exitosa
+                  value:
+                    success: true
+                    categories:
+                      - id: 1
+                        name: "Pizzas"
+                        slug: "pizzas"
+                        description: "Deliciosas pizzas artesanales"
+                        order: 1
+                        image_url: "https://example.com/wp-content/uploads/pizzas.jpg"
+                        product_count: 12
+                      - id: 2
+                        name: "Bebidas"
+                        slug: "bebidas"
+                        description: "Bebidas frías y calientes"
+                        order: 2
+                        image_url: "https://example.com/wp-content/uploads/bebidas.jpg"
+                        product_count: 8
+
+    post:
+      tags:
+        - Categories
+      summary: Crear categoría
+      description: Crea una nueva categoría
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryInput'
+            examples:
+              basic:
+                summary: Categoría básica
+                value:
+                  name: "Postres"
+                  description: "Dulces y postres deliciosos"
+              with_image:
+                summary: Categoría con imagen
+                value:
+                  name: "Ensaladas"
+                  description: "Ensaladas frescas y saludables"
+                  image_url: "https://example.com/wp-content/uploads/ensaladas.jpg"
+      responses:
+        '200':
+          description: Categoría creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+              examples:
+                success:
+                  summary: Categoría creada exitosamente
+                  value:
+                    success: true
+                    data:
+                      id: 5
+                      name: "Postres"
+                      slug: "postres"
+                      description: "Dulces y postres deliciosos"
+                      order: 5
+                      image_url: null
+                      product_count: 0
+        '400':
+          description: Error de validación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+              examples:
+                duplicate_name:
+                  summary: Nombre duplicado
+                  value:
+                    code: "duplicate_category"
+                    message: "Ya existe una categoría con ese nombre"
+                    data:
+                      status: 400
+                      field: "name"
+        '403':
+          description: Permisos insuficientes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /categories/{id}:
+    put:
+      tags:
+        - Categories
+      summary: Actualizar categoría
+      description: Actualiza una categoría existente
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryInput'
+      responses:
+        '200':
+          description: Categoría actualizada
+
+    delete:
+      tags:
+        - Categories
+      summary: Eliminar categoría
+      description: Elimina una categoría
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Categoría eliminada
+
+  # ============================================
+  # ORDERS ENDPOINTS
+  # ============================================
+  /orders:
+    get:
+      tags:
+        - Orders
+      summary: Listar órdenes
+      description: Obtiene una lista paginada de órdenes
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [new, confirmed, in-process, done, waiting, in-delivery, finished, canceled]
+        - name: payment_status
+          in: query
+          schema:
+            type: string
+            enum: [waiting, paid, failed]
+        - name: date_from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: date_to
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Lista de órdenes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  orders:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Order'
+                  total:
+                    type: integer
+                  pages:
+                    type: integer
+                  current_page:
+                    type: integer
+                  per_page:
+                    type: integer
+
+    post:
+      tags:
+        - Orders
+      summary: Crear orden
+      description: Crea una nueva orden
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderInput'
+      responses:
+        '200':
+          description: Orden creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+
+  /orders/{id}:
+    get:
+      tags:
+        - Orders
+      summary: Obtener orden
+      description: Obtiene una orden específica
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Orden encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+
+    put:
+      tags:
+        - Orders
+      summary: Actualizar orden
+      description: Actualiza una orden existente
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderInput'
+      responses:
+        '200':
+          description: Orden actualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+
+    delete:
+      tags:
+        - Orders
+      summary: Eliminar orden
+      description: Elimina una orden
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Orden eliminada
+
+  # ============================================
+  # CUSTOMERS ENDPOINTS
+  # ============================================
+  /customers:
+    get:
+      tags:
+        - Customers
+      summary: Listar clientes
+      description: Obtiene una lista de clientes
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: orderby
+          in: query
+          schema:
+            type: string
+            enum: [name, phone, total_orders, total_spent, last_order_date]
+            default: last_order_date
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum: [ASC, DESC]
+            default: DESC
+      responses:
+        '200':
+          description: Lista de clientes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  customers:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Customer'
+                  total:
+                    type: integer
+                  pages:
+                    type: integer
+
+  /customers/{phone}:
+    get:
+      tags:
+        - Customers
+      summary: Obtener cliente
+      description: Obtiene un cliente por su teléfono
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: phone
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Cliente encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerDetails'
+
+    put:
+      tags:
+        - Customers
+      summary: Actualizar cliente
+      description: Actualiza información del cliente
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: phone
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerInput'
+      responses:
+        '200':
+          description: Cliente actualizado
+
+  /customers/{phone}/orders:
+    get:
+      tags:
+        - Customers
+      summary: Órdenes del cliente
+      description: Obtiene las órdenes de un cliente
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: phone
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de órdenes del cliente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  orders:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Order'
+
+  /customers/{phone}/addresses:
+    get:
+      tags:
+        - Customers
+      summary: Direcciones del cliente
+      description: Obtiene las direcciones guardadas del cliente
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: phone
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista de direcciones
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  addresses:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Address'
+
+  # ============================================
+  # COUPONS ENDPOINTS
+  # ============================================
+  /coupons:
+    get:
+      tags:
+        - Coupons
+      summary: Listar cupones
+      description: Obtiene una lista de cupones
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [discount-total, discount-delivery]
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [amount, percent]
+      responses:
+        '200':
+          description: Lista de cupones
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  coupons:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Coupon'
+
+    post:
+      tags:
+        - Coupons
+      summary: Crear cupón
+      description: Crea un nuevo cupón
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CouponInput'
+      responses:
+        '200':
+          description: Cupón creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Coupon'
+
+  /coupons/{id}:
+    get:
+      tags:
+        - Coupons
+      summary: Obtener cupón
+      description: Obtiene un cupón específico
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Cupón encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Coupon'
+
+    put:
+      tags:
+        - Coupons
+      summary: Actualizar cupón
+      description: Actualiza un cupón existente
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CouponInput'
+      responses:
+        '200':
+          description: Cupón actualizado
+
+    delete:
+      tags:
+        - Coupons
+      summary: Eliminar cupón
+      description: Elimina un cupón
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Cupón eliminado
+
+  /coupons/validate/{code}:
+    get:
+      tags:
+        - Coupons
+      summary: Validar cupón
+      description: Valida un código de cupón
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Resultado de validación
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                  coupon:
+                    $ref: '#/components/schemas/Coupon'
+                  message:
+                    type: string
+
+  # ============================================
+  # CART ENDPOINTS
+  # ============================================
+  /cart:
+    get:
+      tags:
+        - Cart
+      summary: Obtener carrito
+      description: Obtiene el carrito actual del usuario
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Carrito actual
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+              examples:
+                with_items:
+                  summary: Carrito con items
+                  value:
+                    success: true
+                    data:
+                      items:
+                        - product_id: 15
+                          name: "Pizza Margarita"
+                          price: 12.50
+                          quantity: 2
+                          subtotal: 25.00
+                          extras:
+                            - id: 3
+                              name: "Extra queso"
+                              price: 1.50
+                          notes: "Sin aceitunas"
+                        - product_id: 8
+                          name: "Coca Cola"
+                          price: 2.00
+                          quantity: 2
+                          subtotal: 4.00
+                          extras: []
+                          notes: null
+                      subtotal: 29.00
+                      discount: 2.90
+                      delivery_cost: 3.00
+                      total: 29.10
+                      coupon:
+                        code: "DESCUENTO10"
+                        type: "percentage"
+                        value: 10
+                      delivery_method: "delivery"
+                empty:
+                  summary: Carrito vacío
+                  value:
+                    success: true
+                    data:
+                      items: []
+                      subtotal: 0
+                      discount: 0
+                      delivery_cost: 0
+                      total: 0
+                      coupon: null
+                      delivery_method: null
+
+    post:
+      tags:
+        - Cart
+      summary: Actualizar carrito
+      description: Actualiza el contenido del carrito
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/CartItem'
+                coupon:
+                  type: string
+                delivery_method:
+                  type: string
+            examples:
+              add_items:
+                summary: Agregar items con cupón
+                value:
+                  items:
+                    - product_id: 15
+                      quantity: 2
+                      extras: [3, 5]
+                      notes: "Sin aceitunas"
+                  coupon: "DESCUENTO10"
+                  delivery_method: "delivery"
+              update_quantities:
+                summary: Actualizar cantidades
+                value:
+                  items:
+                    - product_id: 15
+                      quantity: 3
+                    - product_id: 8
+                      quantity: 1
+      responses:
+        '200':
+          description: Carrito actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+              examples:
+                success:
+                  summary: Carrito actualizado exitosamente
+                  value:
+                    success: true
+                    data:
+                      items:
+                        - product_id: 15
+                          name: "Pizza Margarita"
+                          price: 12.50
+                          quantity: 2
+                          subtotal: 25.00
+                      subtotal: 25.00
+                      discount: 2.50
+                      delivery_cost: 3.00
+                      total: 25.50
+        '400':
+          description: Error de validación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+              examples:
+                invalid_coupon:
+                  summary: Cupón inválido
+                  value:
+                    code: "invalid_coupon"
+                    message: "El cupón no existe o ha expirado"
+                    data:
+                      status: 400
+
+    delete:
+      tags:
+        - Cart
+      summary: Limpiar carrito
+      description: Vacía el carrito de compras
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Carrito vaciado
+
+  /cart/items:
+    post:
+      tags:
+        - Cart
+      summary: Agregar item
+      description: Agrega un producto al carrito
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CartItem'
+      responses:
+        '200':
+          description: Item agregado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+
+  /cart/items/{product_id}:
+    put:
+      tags:
+        - Cart
+      summary: Actualizar item
+      description: Actualiza la cantidad de un producto
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                quantity:
+                  type: integer
+      responses:
+        '200':
+          description: Item actualizado
+
+    delete:
+      tags:
+        - Cart
+      summary: Remover item
+      description: Elimina un producto del carrito
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Item eliminado
+
+  # ============================================
+  # SETTINGS ENDPOINTS
+  # ============================================
+  /settings:
+    get:
+      tags:
+        - Settings
+      summary: Obtener configuración
+      description: Obtiene la configuración del sistema
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: group
+          in: query
+          schema:
+            type: string
+            enum: [company, payment, delivery, store, appearance, advanced, integration]
+      responses:
+        '200':
+          description: Configuración actual
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  settings:
+                    type: object
+                  groups:
+                    type: object
+
+    put:
+      tags:
+        - Settings
+      summary: Actualizar configuración
+      description: Actualiza múltiples opciones de configuración
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Configuración actualizada
+
+  /settings/{key}:
+    get:
+      tags:
+        - Settings
+      summary: Obtener configuración específica
+      description: Obtiene el valor de una configuración
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Valor de configuración
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  key:
+                    type: string
+                  value:
+                    type: string
+
+    put:
+      tags:
+        - Settings
+      summary: Actualizar configuración específica
+      description: Actualiza una configuración individual
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                value:
+                  type: string
+      responses:
+        '200':
+          description: Configuración actualizada
+
+  # ============================================
+  # REPORTS ENDPOINTS
+  # ============================================
+  /reports/sales:
+    get:
+      tags:
+        - Reports
+      summary: Reporte de ventas
+      description: Obtiene estadísticas de ventas
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: date_from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: date_to
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Reporte de ventas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SalesReport'
+
+  /reports/products:
+    get:
+      tags:
+        - Reports
+      summary: Reporte de productos
+      description: Obtiene estadísticas de productos
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: date_from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: date_to
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Reporte de productos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductsReport'
+
+  /reports/customers:
+    get:
+      tags:
+        - Reports
+      summary: Reporte de clientes
+      description: Obtiene estadísticas de clientes
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: date_from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: date_to
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Reporte de clientes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomersReport'
+
+  /reports/overview:
+    get:
+      tags:
+        - Reports
+      summary: Reporte general
+      description: Obtiene un resumen general del negocio
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: date_from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: date_to
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Reporte general
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OverviewReport'
+
+  # ============================================
+  # MEDIA ENDPOINTS
+  # ============================================
+  /media/upload:
+    post:
+      tags:
+        - Media
+      summary: Subir imagen
+      description: Sube una imagen en formato base64
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - filename
+                - file_data
+              properties:
+                filename:
+                  type: string
+                  example: product-image.jpg
+                file_data:
+                  type: string
+                  description: Base64 encoded image
+                  example: data:image/jpeg;base64,/9j/4AAQSkZJRg...
+                title:
+                  type: string
+                alt_text:
+                  type: string
+      responses:
+        '200':
+          description: Imagen subida exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  url:
+                    type: string
+                  filename:
+                    type: string
+                  mime_type:
+                    type: string
+                  file_size:
+                    type: integer
+
+  # ============================================
+  # WHATSAPP ENDPOINTS
+  # ============================================
+  /whatsapp/send-order:
+    post:
+      tags:
+        - WhatsApp
+      summary: Enviar orden por WhatsApp
+      description: Envía una orden al cliente por WhatsApp
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - order_id
+              properties:
+                order_id:
+                  type: integer
+                custom_message:
+                  type: string
+      responses:
+        '200':
+          description: Mensaje enviado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message_id:
+                    type: string
+
+# ============================================
+# COMPONENTS
+# ============================================
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    BasicAuth:
+      type: http
+      scheme: basic
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        email:
+          type: string
+        display_name:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        content:
+          type: string
+        status:
+          type: string
+        date_created:
+          type: string
+          format: date-time
+        date_modified:
+          type: string
+          format: date-time
+        image:
+          type: string
+        available:
+          type: string
+          enum: [show, hide, not-available]
+        category:
+          type: string
+        price:
+          type: number
+        price_label:
+          type: string
+          enum: [show, hide, from, consult]
+        description:
+          type: string
+        extras:
+          type: array
+          items:
+            type: object
+
+    ProductInput:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        image:
+          type: string
+        available:
+          type: string
+        category:
+          type: string
+        price:
+          type: number
+        price_label:
+          type: string
+        description:
+          type: string
+        extras:
+          type: array
+
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+        order:
+          type: integer
+        product_count:
+          type: integer
+
+    CategoryInput:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        order:
+          type: integer
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        status:
+          type: string
+        date_created:
+          type: string
+          format: date-time
+        order_status:
+          type: string
+          enum: [new, confirmed, in-process, done, waiting, in-delivery, finished, canceled]
+        customer:
+          $ref: '#/components/schemas/CustomerInfo'
+        payment:
+          $ref: '#/components/schemas/PaymentInfo'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+        table:
+          type: string
+        notes:
+          type: string
+
+    OrderInput:
+      type: object
+      properties:
+        customer_name:
+          type: string
+        customer_phone:
+          type: string
+        customer_address:
+          type: string
+        customer_address_number:
+          type: string
+        customer_address_complement:
+          type: string
+        customer_neighborhood:
+          type: string
+        customer_zipcode:
+          type: string
+        order_status:
+          type: string
+        ship_method:
+          type: string
+        payment_status:
+          type: string
+        payment_method:
+          type: string
+        payment_type:
+          type: string
+        delivery_price:
+          type: number
+        coupon:
+          type: string
+        subtotal:
+          type: number
+        total:
+          type: number
+        change:
+          type: number
+        table:
+          type: integer
+        notes:
+          type: string
+        items:
+          type: array
+
+    CustomerInfo:
+      type: object
+      properties:
+        name:
+          type: string
+        phone:
+          type: string
+        address:
+          type: string
+        address_number:
+          type: string
+        address_complement:
+          type: string
+        neighborhood:
+          type: string
+        zipcode:
+          type: string
+
+    PaymentInfo:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [waiting, paid, failed]
+        type:
+          type: string
+        method:
+          type: string
+        delivery_price:
+          type: number
+        coupon:
+          type: string
+        subtotal:
+          type: number
+        total:
+          type: number
+        change:
+          type: number
+
+    OrderItem:
+      type: object
+      properties:
+        product_id:
+          type: integer
+        product_name:
+          type: string
+        quantity:
+          type: integer
+        price:
+          type: number
+        total:
+          type: number
+        extras:
+          type: array
+
+    Customer:
+      type: object
+      properties:
+        phone:
+          type: string
+        name:
+          type: string
+        total_orders:
+          type: integer
+        total_spent:
+          type: number
+        last_order_date:
+          type: string
+          format: date-time
+        first_order_date:
+          type: string
+          format: date-time
+        customer_since:
+          type: string
+
+    CustomerDetails:
+      allOf:
+        - $ref: '#/components/schemas/Customer'
+        - type: object
+          properties:
+            recent_orders:
+              type: array
+              items:
+                $ref: '#/components/schemas/Order'
+            addresses:
+              type: array
+              items:
+                $ref: '#/components/schemas/Address'
+
+    CustomerInput:
+      type: object
+      properties:
+        name:
+          type: string
+        phone:
+          type: string
+        address:
+          type: string
+        address_number:
+          type: string
+        address_complement:
+          type: string
+        neighborhood:
+          type: string
+        zipcode:
+          type: string
+
+    Address:
+      type: object
+      properties:
+        address:
+          type: string
+        number:
+          type: string
+        complement:
+          type: string
+        neighborhood:
+          type: string
+        zipcode:
+          type: string
+        full_address:
+          type: string
+        usage_count:
+          type: integer
+
+    Coupon:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        type:
+          type: string
+          enum: [discount-total, discount-delivery]
+        discount_format:
+          type: string
+          enum: [amount, percent]
+        discount_value:
+          type: number
+        description:
+          type: string
+        date_created:
+          type: string
+          format: date-time
+
+    CouponInput:
+      type: object
+      required:
+        - code
+      properties:
+        code:
+          type: string
+        type:
+          type: string
+        discount_format:
+          type: string
+        discount_value:
+          type: number
+        description:
+          type: string
+
+    Cart:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartItem'
+        subtotal:
+          type: number
+        delivery_price:
+          type: number
+        discount:
+          type: number
+        total:
+          type: number
+        coupon:
+          type: string
+        delivery_method:
+          type: string
+
+    CartItem:
+      type: object
+      properties:
+        product_id:
+          type: integer
+        product_name:
+          type: string
+        quantity:
+          type: integer
+        price:
+          type: number
+        total:
+          type: number
+        extras:
+          type: array
+          items:
+            type: object
+
+    SalesReport:
+      type: object
+      properties:
+        period:
+          type: object
+        summary:
+          type: object
+        sales_by_day:
+          type: array
+        sales_by_status:
+          type: array
+        sales_by_payment_method:
+          type: array
+        sales_by_delivery_method:
+          type: array
+
+    ProductsReport:
+      type: object
+      properties:
+        period:
+          type: object
+        summary:
+          type: object
+        top_products:
+          type: array
+        product_categories:
+          type: array
+        product_stats:
+          type: array
+
+    CustomersReport:
+      type: object
+      properties:
+        period:
+          type: object
+        summary:
+          type: object
+        top_customers_by_spending:
+          type: array
+        top_customers_by_orders:
+          type: array
+        customer_segmentation:
+          type: object
+
+    OverviewReport:
+      type: object
+      properties:
+        period:
+          type: object
+        summary:
+          type: object
+        order_status_distribution:
+          type: array
+
+    # ============================================
+    # ERROR SCHEMAS
+    # ============================================
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          description: Código de error único
+          example: invalid_credentials
+        message:
+          type: string
+          description: Mensaje de error legible
+          example: Invalid username or password
+        data:
+          type: object
+          description: Datos adicionales del error
+          properties:
+            status:
+              type: integer
+              description: Código HTTP
+              example: 401
+
+    ValidationError:
+      allOf:
+        - $ref: '#/components/schemas/Error'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                status:
+                  type: integer
+                  example: 400
+                params:
+                  type: object
+                  description: Campos con error
+                  additionalProperties:
+                    type: string
+
+    RateLimitError:
+      allOf:
+        - $ref: '#/components/schemas/Error'
+        - type: object
+          properties:
+            code:
+              type: string
+              example: rate_limit_exceeded
+            data:
+              type: object
+              properties:
+                status:
+                  type: integer
+                  example: 429
+                headers:
+                  type: object
+                  properties:
+                    X-RateLimit-Limit:
+                      type: integer
+                      example: 100
+                    X-RateLimit-Remaining:
+                      type: integer
+                      example: 0
+                    X-RateLimit-Reset:
+                      type: integer
+                      example: 1640995260
+                    Retry-After:
+                      type: integer
+                      example: 45
+
+security:
+  - BearerAuth: []

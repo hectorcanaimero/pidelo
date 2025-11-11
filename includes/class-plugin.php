@@ -182,6 +182,7 @@ final class Plugin {
 		new Api\Reports\Reports_Api();
 		new Api\Settings\Settings_Api();
 		new Api\Media\Media_Api();
+		// Note: Categories, Cart and Auth APIs are auto-instantiated in their respective files
 
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_scripts' ] );
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_frondend_scripts' ] );
@@ -247,6 +248,7 @@ final class Plugin {
 		include_once MYD_PLUGIN_PATH . 'includes/class-orders-front-panel.php';
 		include_once MYD_PLUGIN_PATH . 'includes/fdm-track-order.php';
 		include_once MYD_PLUGIN_PATH . 'includes/api.php';
+		include_once MYD_PLUGIN_PATH . 'includes/api/class-rate-limiter.php';
 		include_once MYD_PLUGIN_PATH . 'includes/api/sse/class-order-status-tracking.php';
 		include_once MYD_PLUGIN_PATH . 'includes/api/order/class-get-order.php';
 		include_once MYD_PLUGIN_PATH . 'includes/api/products/class-products-api.php';
@@ -256,6 +258,10 @@ final class Plugin {
 		include_once MYD_PLUGIN_PATH . 'includes/api/reports/class-reports-api.php';
 		include_once MYD_PLUGIN_PATH . 'includes/api/settings/class-settings-api.php';
 		include_once MYD_PLUGIN_PATH . 'includes/api/media/class-media-api.php';
+		include_once MYD_PLUGIN_PATH . 'includes/api/categories/class-categories-api.php';
+		include_once MYD_PLUGIN_PATH . 'includes/api/cart/class-cart-api.php';
+		include_once MYD_PLUGIN_PATH . 'includes/api/auth/class-auth-api.php';
+		include_once MYD_PLUGIN_PATH . 'includes/api/swagger/class-swagger-ui.php';
 		include_once MYD_PLUGIN_PATH . 'includes/set-custom-styles.php';
 		include_once MYD_PLUGIN_PATH . 'includes/class-legacy.php';
 		include_once MYD_PLUGIN_PATH . 'includes/class-store-orders.php';
