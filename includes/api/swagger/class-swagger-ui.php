@@ -95,7 +95,7 @@ class Swagger_UI {
 		$yaml_url = rest_url( 'myd-delivery/v1/swagger.json' );
 		?>
 		<!DOCTYPE html>
-		<html lang="en">
+		<html lang="es">
 		<head>
 			<meta charset="UTF-8">
 			<title>MyD Delivery Pro - API Documentation</title>

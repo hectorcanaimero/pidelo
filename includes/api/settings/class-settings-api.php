@@ -20,7 +20,9 @@ class Settings_Api {
 		'fdm-business-address' => '',
 		'fdm-business-phone' => '',
 		'fdm-business-email' => '',
-		
+		'myd-business-mail' => '',
+		'myd-business-whatsapp' => '',
+
 		// Payment settings
 		'myd-currency' => '$',
 		'fdm-number-decimal' => '2',
@@ -29,34 +31,94 @@ class Settings_Api {
 		'fdm-payment-in-cash' => 'yes',
 		'fdm-payment-type' => '',
 		'myd-payment-receipt-required' => 'no',
-		
+
 		// Delivery settings
 		'fdm-estimate-time-delivery' => '30-45 minutes',
 		'fdm-mask-phone' => '',
 		'fdm-delivery-methods' => '',
 		'fdm-minimum-order' => '0',
-		
+		'myd-delivery-time' => array(),
+		'myd-delivery-mode' => '',
+		'myd-delivery-mode-options' => array(),
+
 		// Store settings
 		'fdm-list-menu-categories' => '',
 		'fdm-store-hours' => '',
 		'fdm-store-timezone' => '',
-		
+		'myd-delivery-force-open-close-store' => '',
+
 		// Appearance settings
 		'fdm-principal-color' => '#ea1d2b',
 		'fdm-secondary-color' => '#ffffff',
 		'fdm-text-color' => '#333333',
 		'fdm-background-color' => '#ffffff',
-		
+		'myd-price-color' => '',
+		'fdm-print-size' => '',
+		'fdm-print-font-size' => '',
+		'myd-products-list-columns' => 'myd-product-list--2columns',
+		'myd-products-list-boxshadow' => 'myd-product-item--boxshadow',
+
+		// Operation mode settings
+		'myd-operation-mode-delivery' => 'delivery',
+		'myd-operation-mode-take-away' => '',
+		'myd-operation-mode-in-store' => '',
+		'myd-skip-payment-in-store' => 'no',
+
+		// Form field settings
+		'myd-form-hide-zipcode' => '',
+		'myd-form-hide-address-number' => '',
+
+		// Order options
+		'myd-option-minimum-price' => '',
+		'myd-option-redirect-whatsapp' => '',
+
+		// Currency conversion settings
+		'myd-currency-conversion-enabled' => '0',
+		'myd-currency-manual-rate-usd-vef-enabled' => 'no',
+		'myd-currency-manual-rate-usd-vef' => '',
+		'myd-currency-manual-rate-eur-vef-enabled' => 'no',
+		'myd-currency-manual-rate-eur-vef' => '',
+
+		// Google Maps / Shipping distance settings
+		'fdm-google-maps-api-key' => '',
+		'myd-shipping-distance-google-api-key' => '',
+		'myd-shipping-distance-address-latitude' => '',
+		'myd-shipping-distance-address-longitude' => '',
+		'myd-shipping-distance-formated-address' => '',
+
+		// Order templates
+		'myd-template-order-custom-message-list-products' => '',
+		'myd-template-order-custom-message-delivery' => '',
+		'myd-template-order-custom-message-take-away' => '',
+		'myd-template-order-custom-message-digital-menu' => '',
+
 		// Advanced settings
 		'fdm-page-order-track' => '',
-		'fdm-google-maps-api-key' => '',
 		'fdm-whatsapp-number' => '',
 		'fdm-notification-sound' => 'yes',
-		
+		'myd-notification-audio-enabled' => 'yes',
+		'myd-notification-audio-volume' => '0.8',
+		'myd-notification-repeat-count' => '3',
+
 		// Integration settings
 		'fdm-payment-gateway' => '',
 		'fdm-email-notifications' => 'yes',
 		'fdm-sms-notifications' => 'no',
+
+		// Evolution API (WhatsApp) settings
+		'myd-evolution-api-enabled' => 'no',
+		'myd-evolution-phone-country-code' => '55',
+		'myd-evolution-auto-send-events' => array(),
+		'myd-evolution-template-order-created' => '',
+		'myd-evolution-template-order-confirmed' => '',
+		'myd-evolution-template-order-in-process' => '',
+		'myd-evolution-template-order-ready' => '',
+		'myd-evolution-template-order-in-delivery' => '',
+		'myd-evolution-template-order-done' => '',
+		'myd-evolution-template-order-finished' => '',
+
+		// License (sensitive - consider excluding from public API)
+		'fdm-license' => '',
 	);
 
 	/**
@@ -282,13 +344,96 @@ class Settings_Api {
 	 */
 	private function setting_belongs_to_group( $key, $group ) {
 		$group_mappings = array(
-			'company' => array( 'fdm-business-name', 'fdm-business-country', 'fdm-business-address', 'fdm-business-phone', 'fdm-business-email' ),
-			'payment' => array( 'myd-currency', 'fdm-number-decimal', 'fdm-decimal-separator', 'fdm-thousands-separator', 'fdm-payment-in-cash', 'fdm-payment-type', 'fdm-payment-gateway' ),
-			'delivery' => array( 'fdm-estimate-time-delivery', 'fdm-mask-phone', 'fdm-delivery-methods', 'fdm-minimum-order' ),
-			'store' => array( 'fdm-list-menu-categories', 'fdm-store-hours', 'fdm-store-timezone' ),
-			'appearance' => array( 'fdm-principal-color', 'fdm-secondary-color', 'fdm-text-color', 'fdm-background-color' ),
-			'advanced' => array( 'fdm-page-order-track', 'fdm-google-maps-api-key', 'fdm-whatsapp-number', 'fdm-notification-sound' ),
-			'integration' => array( 'fdm-email-notifications', 'fdm-sms-notifications' ),
+			'company' => array(
+				'fdm-business-name',
+				'fdm-business-country',
+				'fdm-business-address',
+				'fdm-business-phone',
+				'fdm-business-email',
+				'myd-business-mail',
+				'myd-business-whatsapp'
+			),
+			'payment' => array(
+				'myd-currency',
+				'fdm-number-decimal',
+				'fdm-decimal-separator',
+				'fdm-thousands-separator',
+				'fdm-payment-in-cash',
+				'fdm-payment-type',
+				'fdm-payment-gateway',
+				'myd-payment-receipt-required',
+				'myd-currency-conversion-enabled',
+				'myd-currency-manual-rate-usd-vef-enabled',
+				'myd-currency-manual-rate-usd-vef',
+				'myd-currency-manual-rate-eur-vef-enabled',
+				'myd-currency-manual-rate-eur-vef'
+			),
+			'delivery' => array(
+				'fdm-estimate-time-delivery',
+				'fdm-mask-phone',
+				'fdm-delivery-methods',
+				'fdm-minimum-order',
+				'myd-delivery-time',
+				'myd-delivery-mode',
+				'myd-delivery-mode-options',
+				'myd-option-minimum-price',
+				'myd-option-redirect-whatsapp',
+				'myd-operation-mode-delivery',
+				'myd-operation-mode-take-away',
+				'myd-operation-mode-in-store',
+				'myd-skip-payment-in-store'
+			),
+			'store' => array(
+				'fdm-list-menu-categories',
+				'fdm-store-hours',
+				'fdm-store-timezone',
+				'myd-delivery-force-open-close-store'
+			),
+			'appearance' => array(
+				'fdm-principal-color',
+				'fdm-secondary-color',
+				'fdm-text-color',
+				'fdm-background-color',
+				'myd-price-color',
+				'fdm-print-size',
+				'fdm-print-font-size',
+				'myd-products-list-columns',
+				'myd-products-list-boxshadow',
+				'myd-form-hide-zipcode',
+				'myd-form-hide-address-number'
+			),
+			'advanced' => array(
+				'fdm-page-order-track',
+				'fdm-google-maps-api-key',
+				'myd-shipping-distance-google-api-key',
+				'myd-shipping-distance-address-latitude',
+				'myd-shipping-distance-address-longitude',
+				'myd-shipping-distance-formated-address',
+				'fdm-whatsapp-number',
+				'fdm-notification-sound',
+				'myd-notification-audio-enabled',
+				'myd-notification-audio-volume',
+				'myd-notification-repeat-count',
+				'myd-template-order-custom-message-list-products',
+				'myd-template-order-custom-message-delivery',
+				'myd-template-order-custom-message-take-away',
+				'myd-template-order-custom-message-digital-menu',
+				'fdm-license'
+			),
+			'integration' => array(
+				'fdm-email-notifications',
+				'fdm-sms-notifications',
+				'myd-evolution-api-enabled',
+				'myd-evolution-phone-country-code',
+				'myd-evolution-auto-send-events',
+				'myd-evolution-template-order-created',
+				'myd-evolution-template-order-confirmed',
+				'myd-evolution-template-order-in-process',
+				'myd-evolution-template-order-ready',
+				'myd-evolution-template-order-in-delivery',
+				'myd-evolution-template-order-done',
+				'myd-evolution-template-order-finished'
+			),
 		);
 
 		return isset( $group_mappings[ $group ] ) && in_array( $key, $group_mappings[ $group ] );
@@ -369,8 +514,31 @@ class Settings_Api {
 	 * Sanitize setting value
 	 */
 	private function sanitize_setting_value( $key, $value ) {
+		// Handle array values
+		if ( in_array( $key, array( 'myd-delivery-time', 'myd-delivery-mode-options', 'myd-evolution-auto-send-events' ) ) ) {
+			if ( ! is_array( $value ) ) {
+				return new \WP_Error( 'invalid_type', __( 'Value must be an array', 'myd-delivery-pro' ), array( 'status' => 400 ) );
+			}
+			return array_map( 'sanitize_text_field', $value );
+		}
+
 		// Handle boolean values - accept both boolean and string representations
-		if ( in_array( $key, array( 'fdm-payment-in-cash', 'fdm-notification-sound', 'fdm-email-notifications', 'fdm-sms-notifications', 'myd-payment-receipt-required' ) ) ) {
+		if ( in_array( $key, array(
+			'fdm-payment-in-cash',
+			'fdm-notification-sound',
+			'fdm-email-notifications',
+			'fdm-sms-notifications',
+			'myd-payment-receipt-required',
+			'myd-skip-payment-in-store',
+			'myd-currency-conversion-enabled',
+			'myd-currency-manual-rate-usd-vef-enabled',
+			'myd-currency-manual-rate-eur-vef-enabled',
+			'myd-notification-audio-enabled',
+			'myd-evolution-api-enabled',
+			'myd-option-redirect-whatsapp',
+			'myd-form-hide-zipcode',
+			'myd-form-hide-address-number'
+		) ) ) {
 			// Handle various boolean representations
 			if ( is_bool( $value ) ) {
 				return $value ? 'yes' : 'no';
@@ -382,12 +550,26 @@ class Settings_Api {
 		}
 
 		// Handle numeric values
-		if ( in_array( $key, array( 'fdm-number-decimal', 'fdm-minimum-order' ) ) ) {
+		if ( in_array( $key, array(
+			'fdm-number-decimal',
+			'fdm-minimum-order',
+			'myd-notification-audio-volume',
+			'myd-notification-repeat-count',
+			'myd-option-minimum-price',
+			'myd-currency-manual-rate-usd-vef',
+			'myd-currency-manual-rate-eur-vef',
+			'myd-shipping-distance-address-latitude',
+			'myd-shipping-distance-address-longitude'
+		) ) ) {
 			$numeric_value = floatval( $value );
-			if ( $numeric_value < 0 ) {
+			if ( $numeric_value < 0 && ! in_array( $key, array( 'myd-shipping-distance-address-latitude', 'myd-shipping-distance-address-longitude' ) ) ) {
 				return new \WP_Error( 'invalid_value', __( 'Value must be positive', 'myd-delivery-pro' ), array( 'status' => 400 ) );
 			}
-			return $key === 'fdm-number-decimal' ? intval( $numeric_value ) : $numeric_value;
+			// Return int for specific fields
+			if ( in_array( $key, array( 'fdm-number-decimal', 'myd-notification-repeat-count' ) ) ) {
+				return intval( $numeric_value );
+			}
+			return $numeric_value;
 		}
 
 		// Handle color values
@@ -400,17 +582,30 @@ class Settings_Api {
 		}
 
 		// Handle email values
-		if ( strpos( $key, 'email' ) !== false && ! empty( $value ) ) {
-			$sanitized_email = sanitize_email( $value );
-			if ( ! is_email( $sanitized_email ) ) {
-				return new \WP_Error( 'invalid_email', __( 'Invalid email format', 'myd-delivery-pro' ), array( 'status' => 400 ) );
+		if ( strpos( $key, 'email' ) !== false || strpos( $key, 'mail' ) !== false ) {
+			if ( ! empty( $value ) ) {
+				$sanitized_email = sanitize_email( $value );
+				if ( ! is_email( $sanitized_email ) ) {
+					return new \WP_Error( 'invalid_email', __( 'Invalid email format', 'myd-delivery-pro' ), array( 'status' => 400 ) );
+				}
+				return $sanitized_email;
 			}
-			return $sanitized_email;
+			return '';
 		}
 
 		// Handle phone numbers - preserve + and - characters
 		if ( strpos( $key, 'phone' ) !== false || strpos( $key, 'whatsapp' ) !== false ) {
 			return sanitize_text_field( $value );
+		}
+
+		// Handle template/textarea values - preserve newlines
+		if ( strpos( $key, 'template' ) !== false || strpos( $key, 'message' ) !== false ) {
+			return sanitize_textarea_field( $value );
+		}
+
+		// Handle license key - no sanitization to preserve exact value
+		if ( $key === 'fdm-license' ) {
+			return $value;
 		}
 
 		// Default sanitization
@@ -435,12 +630,43 @@ class Settings_Api {
 
 		foreach ( $this->available_settings as $key => $default ) {
 			$type = 'string';
-			
+
 			// Determine type based on key name or default value
-			if ( in_array( $key, array( 'fdm-payment-in-cash', 'fdm-notification-sound', 'fdm-email-notifications', 'fdm-sms-notifications' ) ) ) {
+			if ( in_array( $key, array(
+				'fdm-payment-in-cash',
+				'fdm-notification-sound',
+				'fdm-email-notifications',
+				'fdm-sms-notifications',
+				'myd-payment-receipt-required',
+				'myd-skip-payment-in-store',
+				'myd-currency-conversion-enabled',
+				'myd-currency-manual-rate-usd-vef-enabled',
+				'myd-currency-manual-rate-eur-vef-enabled',
+				'myd-notification-audio-enabled',
+				'myd-evolution-api-enabled',
+				'myd-option-redirect-whatsapp',
+				'myd-form-hide-zipcode',
+				'myd-form-hide-address-number'
+			) ) ) {
 				$type = 'boolean';
-			} elseif ( in_array( $key, array( 'fdm-number-decimal', 'fdm-minimum-order' ) ) ) {
+			} elseif ( in_array( $key, array(
+				'fdm-number-decimal',
+				'fdm-minimum-order',
+				'myd-notification-audio-volume',
+				'myd-notification-repeat-count',
+				'myd-option-minimum-price',
+				'myd-currency-manual-rate-usd-vef',
+				'myd-currency-manual-rate-eur-vef',
+				'myd-shipping-distance-address-latitude',
+				'myd-shipping-distance-address-longitude'
+			) ) ) {
 				$type = 'number';
+			} elseif ( in_array( $key, array(
+				'myd-delivery-time',
+				'myd-delivery-mode-options',
+				'myd-evolution-auto-send-events'
+			) ) ) {
+				$type = 'array';
 			}
 
 			$schema[ $key ] = array(
