@@ -277,6 +277,9 @@ class Products_Api {
 	 * Prepare product data for API response
 	 */
 	private function prepare_product_data( $post ) {
+		$image_value = get_post_meta( $post->ID, 'product_image', true );
+		$image_url = $this->get_image_url( $image_value );
+
 		$product_data = array(
 			'id' => $post->ID,
 			'title' => $post->post_title,
@@ -284,7 +287,8 @@ class Products_Api {
 			'status' => $post->post_status,
 			'date_created' => $post->post_date,
 			'date_modified' => $post->post_modified,
-			'image' => get_post_meta( $post->ID, 'product_image', true ),
+			'image' => $image_value, // Original value (URL or attachment ID)
+			'image_url' => $image_url, // Full URL of the image
 			'available' => get_post_meta( $post->ID, 'product_available', true ),
 			'category' => get_post_meta( $post->ID, 'product_type', true ),
 			'price' => get_post_meta( $post->ID, 'product_price', true ),
@@ -294,6 +298,31 @@ class Products_Api {
 		);
 
 		return $product_data;
+	}
+
+	/**
+	 * Get image URL from attachment ID or URL string
+	 */
+	private function get_image_url( $image_value ) {
+		if ( empty( $image_value ) ) {
+			return '';
+		}
+
+		// If it's already a URL, return it
+		if ( filter_var( $image_value, FILTER_VALIDATE_URL ) ) {
+			return $image_value;
+		}
+
+		// If it's numeric, assume it's an attachment ID
+		if ( is_numeric( $image_value ) ) {
+			$attachment_url = wp_get_attachment_url( intval( $image_value ) );
+			if ( $attachment_url ) {
+				return $attachment_url;
+			}
+		}
+
+		// Fallback: return the original value
+		return $image_value;
 	}
 
 	/**
