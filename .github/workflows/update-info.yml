@@ -1,0 +1,133 @@
+name: Update Plugin Info
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number (e.g., 2.3.8)'
+        required: false
+
+jobs:
+  update-info:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Get version from release or input
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" == "release" ]; then
+            VERSION="${{ github.event.release.tag_name }}"
+            VERSION="${VERSION#v}"
+          else
+            VERSION="${{ github.event.inputs.version }}"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+
+      - name: Extract plugin info
+        id: plugin_info
+        run: |
+          # Extract info from main plugin file
+          REQUIRES=$(grep "Requires at least:" myd-delivery-pro.php | sed 's/.*: //' | tr -d ' \r\n')
+          TESTED=$(grep "Tested up to:" myd-delivery-pro.php | sed 's/.*: //' | tr -d ' \r\n' || echo "6.4")
+          REQUIRES_PHP=$(grep "Requires PHP:" myd-delivery-pro.php | sed 's/.*: //' | tr -d ' \r\n')
+
+          echo "requires=$REQUIRES" >> $GITHUB_OUTPUT
+          echo "tested=$TESTED" >> $GITHUB_OUTPUT
+          echo "requires_php=$REQUIRES_PHP" >> $GITHUB_OUTPUT
+
+      - name: Extract changelog
+        id: changelog
+        run: |
+          # Get the latest 3 versions from CHANGELOG.md or git log
+          if [ -f "CHANGELOG.md" ]; then
+            CHANGELOG=$(head -30 CHANGELOG.md | sed 's/"/\\"/g' | awk 'BEGIN{RS=""}{gsub(/\n/,"\\n")}1')
+          else
+            # Generate from recent commits
+            CHANGELOG="<h4>${{ steps.version.outputs.version }}</h4><ul>"
+            git log --pretty=format:"<li>%s</li>" -10 | head -5 >> /tmp/changelog.txt
+            CHANGELOG="$CHANGELOG$(cat /tmp/changelog.txt)</ul>"
+          fi
+
+          # Escape for JSON
+          CHANGELOG=$(echo "$CHANGELOG" | jq -Rs .)
+          echo "changelog=$CHANGELOG" >> $GITHUB_OUTPUT
+
+      - name: Generate update-info.json
+        run: |
+          cat > update-info.json << EOF
+          {
+            "name": "MyD Delivery Pro",
+            "slug": "myd-delivery-pro",
+            "version": "${{ steps.version.outputs.version }}",
+            "download_url": "https://github.com/${{ github.repository }}/releases/download/v${{ steps.version.outputs.version }}/myd-delivery-pro.zip",
+            "requires": "${{ steps.plugin_info.outputs.requires }}",
+            "tested": "${{ steps.plugin_info.outputs.tested }}",
+            "requires_php": "${{ steps.plugin_info.outputs.requires_php }}",
+            "last_updated": "$(date +%Y-%m-%d)",
+            "author": "PideAI",
+            "author_profile": "https://pideai.com",
+            "homepage": "https://pideai.com",
+            "banners": {
+              "low": "",
+              "high": ""
+            },
+            "sections": {
+              "description": "Sistema completo de gestión de delivery con productos, órdenes, clientes, integración con WhatsApp y procesamiento de pagos.",
+              "installation": "<h4>Instalación</h4><ol><li>Sube el plugin a la carpeta /wp-content/plugins/</li><li>Activa el plugin desde el menú 'Plugins' en WordPress</li><li>Configura las opciones desde MyD Delivery Pro</li></ol>",
+              "changelog": ${{ steps.changelog.outputs.changelog }}
+            },
+            "icons": {
+              "1x": "",
+              "2x": ""
+            }
+          }
+          EOF
+
+          # Validate JSON
+          cat update-info.json | jq . > /tmp/valid.json
+          mv /tmp/valid.json update-info.json
+
+          echo "Generated update-info.json:"
+          cat update-info.json
+
+      - name: Checkout gh-pages branch
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: gh-pages
+
+      - name: Copy update-info.json to gh-pages
+        run: |
+          mkdir -p gh-pages
+          cp update-info.json gh-pages/
+
+      - name: Commit and push to gh-pages
+        working-directory: gh-pages
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add update-info.json
+          git commit -m "Update plugin info to version ${{ steps.version.outputs.version }}" || echo "No changes"
+          git push origin gh-pages
+
+      - name: Update summary
+        run: |
+          echo "## Plugin Update Info Generated ✅" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**URL:** https://${{ github.repository_owner }}.github.io/$(basename ${{ github.repository }})/update-info.json" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Content:" >> $GITHUB_STEP_SUMMARY
+          echo '```json' >> $GITHUB_STEP_SUMMARY
+          cat update-info.json >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY

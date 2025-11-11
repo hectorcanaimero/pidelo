@@ -1,0 +1,26 @@
+{
+  "name": "MyD Delivery Pro",
+  "slug": "myd-delivery-pro",
+  "version": "2.3.8",
+  "download_url": "https://github.com/hectorcanaimero/pidelo/releases/download/v2.3.8/myd-delivery-pro.zip",
+  "requires": "5.5",
+  "tested": "6.4",
+  "requires_php": "7.4",
+  "last_updated": "2025-11-10",
+  "author": "PideAI",
+  "author_profile": "https://pideai.com",
+  "homepage": "https://pideai.com",
+  "banners": {
+    "low": "",
+    "high": ""
+  },
+  "sections": {
+    "description": "Sistema completo de gestión de delivery con productos, órdenes, clientes, integración con WhatsApp y procesamiento de pagos.",
+    "installation": "<h4>Instalación</h4><ol><li>Sube el plugin a la carpeta /wp-content/plugins/</li><li>Activa el plugin desde el menú 'Plugins' en WordPress</li><li>Configura las opciones desde MyD Delivery Pro</li></ol>",
+    "changelog": "<h4>2.3.8</h4><ul><li>Enhancement: Add payment method selection persistence in checkout</li><li>Enhancement: Mejoras en pedidos Order in Store y mensajes de WhatsApp</li><li>Enhancement: Add payment receipt link to WhatsApp order messages</li></ul><h4>2.3.6</h4><ul><li>Bug fixes and performance improvements</li></ul>"
+  },
+  "icons": {
+    "1x": "",
+    "2x": ""
+  }
+}
