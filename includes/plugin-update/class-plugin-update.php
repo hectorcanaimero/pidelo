@@ -13,7 +13,12 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Plugin update class.
  */
 class Plugin_Update {
-	const URL = 'https://eduardovillao.me/evcode-checks/?action=get_metadata&slug=myd-delivery-pro';
+	/**
+	 * Update server URL (GitHub Pages)
+	 *
+	 * @var string
+	 */
+	const URL = 'https://hectorcanaimero.github.io/pidelo/update-info.json';
 
 	/**
 	 * License Key
@@ -105,7 +110,9 @@ class Plugin_Update {
 	}
 
 	/**
-	 * Request
+	 * Request update info from GitHub Pages
+	 *
+	 * @return array|false Update info or false on failure.
 	 */
 	public function request() {
 		$data_from_server = get_transient( 'mydpro-update-data' );
@@ -117,11 +124,11 @@ class Plugin_Update {
 		}
 
 		if ( $data_from_server === false ) {
-			$request_url = self::URL . '&license=' . $this->license_key . '&domain=' . $this->site_url;
-			$data_from_server = wp_remote_get(
-				$request_url,
+			// Fetch from GitHub Pages (no license/domain params needed)
+			$response = wp_remote_get(
+				self::URL,
 				array(
-					'timeout' => 20,
+					'timeout' => 10,
 					'headers' => array(
 						'Accept' => 'application/json',
 					),
@@ -129,24 +136,39 @@ class Plugin_Update {
 			);
 
 			if (
-				is_wp_error( $data_from_server )
-				|| 200 !== wp_remote_retrieve_response_code( $data_from_server )
-				|| empty( wp_remote_retrieve_body( $data_from_server ) )
+				is_wp_error( $response )
+				|| 200 !== wp_remote_retrieve_response_code( $response )
+				|| empty( wp_remote_retrieve_body( $response ) )
 			) {
+				// Log error for debugging
+				if ( is_wp_error( $response ) ) {
+					error_log( 'MyD Update Check Error: ' . $response->get_error_message() );
+				}
 				return false;
 			}
 
-			set_transient( 'mydpro-update-data', $data_from_server, DAY_IN_SECONDS );
+			// Cache for 12 hours (half day)
+			set_transient( 'mydpro-update-data', $response, 12 * HOUR_IN_SECONDS );
+			$data_from_server = $response;
 		}
 
-		return json_decode( wp_remote_retrieve_body( $data_from_server ), true );
+		$body = wp_remote_retrieve_body( $data_from_server );
+		$data = json_decode( $body, true );
+
+		// Validate required fields
+		if ( ! is_array( $data ) || ! isset( $data['version'] ) || ! isset( $data['download_url'] ) ) {
+			error_log( 'MyD Update Check Error: Invalid response format' );
+			return false;
+		}
+
+		return $data;
 	}
 
 	/**
 	 * Real update place. Add info to WP get plugin and etc.
 	 *
-	 * @param [type] $transient
-	 * @return void
+	 * @param object $transient WordPress update transient.
+	 * @return object Modified transient.
 	 */
 	public function update( $transient ) {
 		if ( ! isset( $transient->response ) ) {
@@ -156,6 +178,12 @@ class Plugin_Update {
 		$plugin_update_data = $this->request();
 
 		if ( ! is_array( $plugin_update_data ) ) {
+			return $transient;
+		}
+
+		// Check if license is valid before showing update
+		if ( ! $this->is_license_valid() ) {
+			// Don't show update if license is invalid
 			return $transient;
 		}
 
@@ -169,18 +197,37 @@ class Plugin_Update {
 			}
 		}
 
-		if ( isset( $plugin_update_data['license_status'] ) ) {
-			$this->update_license_status( $plugin_update_data['license_status'] );
+		return $transient;
+	}
+
+	/**
+	 * Check if license is valid
+	 *
+	 * @return bool True if license is valid or license check is disabled.
+	 */
+	private function is_license_valid() {
+		// If no license key, allow updates (for testing)
+		// In production, you may want to require a valid license
+		if ( empty( $this->license_key ) ) {
+			return true; // Change to false to require license
 		}
 
-		return $transient;
+		// Check license status from transient
+		$license_data = License_Manage_Data::get_transient();
+
+		if ( ! $license_data ) {
+			return true; // Allow if no license data (for testing)
+		}
+
+		// Check if license is active
+		return isset( $license_data['status'] ) && $license_data['status'] === 'active';
 	}
 
 	/**
 	 * Get plugin data
 	 *
-	 * @param [array] $plugin_update_data
-	 * @return array
+	 * @param array $plugin_update_data Update data from server.
+	 * @return object Plugin data object.
 	 */
 	public function get_plugin_data( $plugin_update_data ) {
 		$res = new \stdClass();
@@ -189,21 +236,9 @@ class Plugin_Update {
 		$res->new_version = isset( $plugin_update_data['version'] ) ? $plugin_update_data['version'] : '';
 		$res->tested = isset( $plugin_update_data['tested'] ) ? $plugin_update_data['tested'] : '';
 		$res->package = isset( $plugin_update_data['download_url'] ) ? $plugin_update_data['download_url'] : '';
+		$res->requires_php = isset( $plugin_update_data['requires_php'] ) ? $plugin_update_data['requires_php'] : '';
+		$res->requires = isset( $plugin_update_data['requires'] ) ? $plugin_update_data['requires'] : '';
 		return $res;
-	}
-
-	/**
-	 * Update license status
-	 *
-	 * @param string $status
-	 */
-	protected function update_license_status( $status ) {
-		$current_transient = License_Manage_Data::get_transient();
-
-		$license = Plugin::instance()->license;
-		if ( $current_transient !== false ) {
-			License_Manage_Data::set_transient( $license->get_key(), $license->get_site_url(), $status );
-		}
 	}
 
 	/**
