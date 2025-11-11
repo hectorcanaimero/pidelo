@@ -203,24 +203,142 @@ class Plugin_Update {
 	/**
 	 * Check if license is valid
 	 *
-	 * @return bool True if license is valid or license check is disabled.
+	 * @return bool True if license is valid.
 	 */
 	private function is_license_valid() {
-		// If no license key, allow updates (for testing)
-		// In production, you may want to require a valid license
+		// Check if license key exists
 		if ( empty( $this->license_key ) ) {
-			return true; // Change to false to require license
+			// Add admin notice about missing license
+			add_action( 'admin_notices', array( $this, 'missing_license_notice' ) );
+			return false;
 		}
 
 		// Check license status from transient
 		$license_data = License_Manage_Data::get_transient();
 
 		if ( ! $license_data ) {
-			return true; // Allow if no license data (for testing)
+			// No license data - show activation notice
+			add_action( 'admin_notices', array( $this, 'activate_license_notice' ) );
+			return false;
 		}
 
 		// Check if license is active
-		return isset( $license_data['status'] ) && $license_data['status'] === 'active';
+		if ( ! isset( $license_data['status'] ) || $license_data['status'] !== 'active' ) {
+			// License exists but not active - show specific notice
+			$status = isset( $license_data['status'] ) ? $license_data['status'] : 'unknown';
+			add_action( 'admin_notices', array( $this, 'inactive_license_notice_' . $status ), 10 );
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Notice for missing license key
+	 */
+	public function missing_license_notice() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		?>
+		<div class="notice notice-warning is-dismissible">
+			<p>
+				<strong><?php esc_html_e( 'MyD Delivery Pro:', 'myd-delivery-pro' ); ?></strong>
+				<?php esc_html_e( 'Necesitas activar una licencia para recibir actualizaciones del plugin.', 'myd-delivery-pro' ); ?>
+				<a href="<?php echo esc_url( admin_url( 'admin.php?page=myd-license' ) ); ?>" class="button button-primary" style="margin-left: 10px;">
+					<?php esc_html_e( 'Activar Licencia', 'myd-delivery-pro' ); ?>
+				</a>
+			</p>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Notice for license that needs activation
+	 */
+	public function activate_license_notice() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		?>
+		<div class="notice notice-warning is-dismissible">
+			<p>
+				<strong><?php esc_html_e( 'MyD Delivery Pro:', 'myd-delivery-pro' ); ?></strong>
+				<?php esc_html_e( 'Tu licencia necesita ser activada para recibir actualizaciones.', 'myd-delivery-pro' ); ?>
+				<a href="<?php echo esc_url( admin_url( 'admin.php?page=myd-license' ) ); ?>" class="button button-primary" style="margin-left: 10px;">
+					<?php esc_html_e( 'Activar Ahora', 'myd-delivery-pro' ); ?>
+				</a>
+			</p>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Notice for expired license
+	 */
+	public function inactive_license_notice_expired() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		?>
+		<div class="notice notice-error is-dismissible">
+			<p>
+				<strong><?php esc_html_e( 'MyD Delivery Pro:', 'myd-delivery-pro' ); ?></strong>
+				<?php esc_html_e( 'Tu licencia ha expirado. Renueva tu licencia para seguir recibiendo actualizaciones y soporte.', 'myd-delivery-pro' ); ?>
+				<a href="https://pideai.com/renovar-licencia/" target="_blank" class="button button-primary" style="margin-left: 10px;">
+					<?php esc_html_e( 'Renovar Licencia', 'myd-delivery-pro' ); ?>
+				</a>
+			</p>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Notice for invalid license
+	 */
+	public function inactive_license_notice_invalid() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		?>
+		<div class="notice notice-error is-dismissible">
+			<p>
+				<strong><?php esc_html_e( 'MyD Delivery Pro:', 'myd-delivery-pro' ); ?></strong>
+				<?php esc_html_e( 'La licencia no es válida para este dominio. Verifica tu licencia o contacta con soporte.', 'myd-delivery-pro' ); ?>
+				<a href="<?php echo esc_url( admin_url( 'admin.php?page=myd-license' ) ); ?>" class="button button-secondary" style="margin-left: 10px;">
+					<?php esc_html_e( 'Revisar Licencia', 'myd-delivery-pro' ); ?>
+				</a>
+				<a href="https://pideai.com/soporte/" target="_blank" class="button button-secondary">
+					<?php esc_html_e( 'Contactar Soporte', 'myd-delivery-pro' ); ?>
+				</a>
+			</p>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Notice for inactive license (generic)
+	 */
+	public function inactive_license_notice_inactive() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		?>
+		<div class="notice notice-warning is-dismissible">
+			<p>
+				<strong><?php esc_html_e( 'MyD Delivery Pro:', 'myd-delivery-pro' ); ?></strong>
+				<?php esc_html_e( 'Tu licencia no está activa. Actívala para recibir actualizaciones.', 'myd-delivery-pro' ); ?>
+				<a href="<?php echo esc_url( admin_url( 'admin.php?page=myd-license' ) ); ?>" class="button button-primary" style="margin-left: 10px;">
+					<?php esc_html_e( 'Activar Licencia', 'myd-delivery-pro' ); ?>
+				</a>
+			</p>
+		</div>
+		<?php
 	}
 
 	/**
