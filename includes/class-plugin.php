@@ -204,12 +204,23 @@ final class Plugin {
 		$this->store_data = Store_Data::get_store_data();
 
 		/**
-		 * Plugin update checker - DISABLED
-		 * Auto-updates have been disabled as per requirements
+		 * Plugin update checker
 		 */
-		// $plugin_update = new Plugin_Update();
-		// add_filter( 'plugins_api', array( $plugin_update, 'info' ), 20, 3 );
-		// add_filter( 'pre_set_site_transient_update_plugins', array( $plugin_update, 'update' ) );
+		$plugin_update = new Plugin_Update();
+		add_filter( 'plugins_api', array( $plugin_update, 'info' ), 20, 3 );
+		add_filter( 'pre_set_site_transient_update_plugins', array( $plugin_update, 'update' ) );
+		add_action( 'upgrader_process_complete', array( $plugin_update, 'purge' ), 10, 2 );
+
+		// Initialize update notification system
+		new \MydPro\Includes\Plugin_Update\Update_Dashboard_Widget();
+		new \MydPro\Includes\Plugin_Update\Update_Email_Notification();
+		new \MydPro\Includes\Plugin_Update\Update_History();
+		new \MydPro\Includes\Plugin_Update\Auto_Updater();
+		new \MydPro\Includes\Plugin_Update\Update_Menu_Badge();
+
+		if ( is_admin() ) {
+			new \MydPro\Includes\Plugin_Update\Update_Settings_Page();
+		}
 
 		/**
 		 * TODO: Move to license class
@@ -273,6 +284,12 @@ final class Plugin {
 		include_once MYD_PLUGIN_PATH . 'includes/license/class-license-activate.php';
 		include_once MYD_PLUGIN_PATH . 'includes/license/class-license-deactivate.php';
 		include_once MYD_PLUGIN_PATH . 'includes/plugin-update/class-plugin-update.php';
+		include_once MYD_PLUGIN_PATH . 'includes/plugin-update/class-update-dashboard-widget.php';
+		include_once MYD_PLUGIN_PATH . 'includes/plugin-update/class-update-email-notification.php';
+		include_once MYD_PLUGIN_PATH . 'includes/plugin-update/class-update-history.php';
+		include_once MYD_PLUGIN_PATH . 'includes/plugin-update/class-auto-updater.php';
+		include_once MYD_PLUGIN_PATH . 'includes/plugin-update/class-update-menu-badge.php';
+		include_once MYD_PLUGIN_PATH . 'includes/plugin-update/class-update-settings-page.php';
 		include_once MYD_PLUGIN_PATH . 'includes/class-currency.php';
 		include_once MYD_PLUGIN_PATH . 'includes/l10n/class-countries.php';
 		include_once MYD_PLUGIN_PATH . 'includes/l10n/class-country.php';
