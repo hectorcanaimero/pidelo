@@ -7,6 +7,53 @@ y este proyecto se adhiere al [Versionado Sem�ntico](https://semver.org/lang/e
 
 ---
 
+## [2.3.9] - 2025-11-11
+
+### Agregado
+
+- **Sistema de Auto-actualización con GitHub Actions (#27)**
+  - Workflow automático que empaqueta el plugin al crear releases
+  - Generación de ZIP con archivos de producción (excluye tests, docs, etc.)
+  - Upload automático del ZIP como asset del release
+  - Workflow de actualización de `update-info.json` en GitHub Pages
+  - Validación de ZIP y estructura JSON
+  - Notificaciones automáticas en caso de fallo
+  - Documentación completa del proceso de release
+
+### Corregido
+
+- **Endpoints de Settings API no retornaban información correctamente (#34)**
+  - **Problema**: Settings no se guardaban ni retornaban correctamente
+  - **Causas identificadas**:
+    - Doble instanciación de la clase Settings_Api
+    - Validación incorrecta del retorno de `update_option()`
+    - Conversión errónea de valores booleanos y numéricos
+    - Validaciones incompletas de emails y colores
+  - **Soluciones implementadas**:
+    - Eliminada doble inicialización de Settings_Api
+    - Corregida lógica de `update_settings()` para siempre retornar valores actualizados
+    - Corregida validación en `update_setting()` para verificar valores guardados
+    - Mejorado manejo de booleanos: acepta `true/false`, `"yes"/"no"`, `1/0`
+    - Mejorada detección de floats vs integers en valores numéricos
+    - Agregada sanitización de emails con `sanitize_email()`
+    - Mejorada validación de colores para permitir valores vacíos
+    - Agregado manejo especial de números telefónicos y WhatsApp
+  - **Archivos modificados**:
+    - `includes/api/settings/class-settings-api.php`: Correcciones en endpoints
+    - `api.http`: 15+ tests agregados para validar todas las funcionalidades
+  - **Endpoints funcionando**:
+    - `GET /settings` - Obtener todos los settings
+    - `GET /settings?group=company` - Filtrar por grupo
+    - `GET /settings/{key}` - Obtener setting específico
+    - `PUT /settings` - Actualizar múltiples settings
+    - `PUT /settings/{key}` - Actualizar setting individual
+
+### Mejorado
+
+- **Documentación de Workflows**
+  - `.github/workflows/README.md` - Documentación de workflows disponibles
+  - `docs/RELEASE-PROCESS.md` - Guía completa del proceso de release
+
 ## [2.3.5] - 2025-10-29
 
 ### Mejorado

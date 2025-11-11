@@ -5,7 +5,7 @@
  * Description: MyD Delivery create a complete system to delivery with products, orders, clients, support to send order on WhatsApp and more.
  * Author: EduardoVillao.me
  * Author URI: https://pideai.com
- * Version: 2.3.8
+ * Version: 2.3.9
  * Requires PHP: 7.4
  * Requires at least: 5.5
  * Text Domain: myd-delivery-pro
@@ -25,7 +25,7 @@ define( 'MYD_PLUGN_URL', plugin_dir_url( __FILE__ ) );
 define( 'MYD_PLUGIN_MAIN_FILE', __FILE__ );
 define( 'MYD_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 define( 'MYD_PLUGIN_DIRNAME', plugin_basename( __DIR__ ) );
-define( 'MYD_CURRENT_VERSION', '2.3.8' );
+define( 'MYD_CURRENT_VERSION', '2.3.9' );
 define( 'MYD_MINIMUM_PHP_VERSION', '7.4' );
 define( 'MYD_MINIMUM_WP_VERSION', '5.5' );
 define( 'MYD_PLUGIN_NAME', 'MyD Delivery Pro' );
