@@ -1,12 +1,16 @@
-@URL=http://127.0.0.1/wp-json/myd-delivery/v1
-@TOKEN=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9sb2NhbGhvc3QiLCJpYXQiOjE3NjI4OTI1MDgsImV4cCI6MTc2Mjk3ODkwOCwiZGF0YSI6eyJ1c2VyX2lkIjoxLCJ1c2VyX2xvZ2luIjoiYWRtaW4iLCJ1c2VyX2VtYWlsIjoia25haW1lcm9AZ21haWwuY29tIn19.ejG__mus5Xqc83QemGIFODoF8lpgngg0de0IEZtXSwA
+// @URL=http://127.0.0.1/wp-json/myd-delivery/v1
+@URL=https://host.pideai.com/wp-json/myd-delivery/v1
+# @TOKEN=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9sb2NhbGhvc3QiLCJpYXQiOjE3NjI4OTI1MDgsImV4cCI6MTc2Mjk3ODkwOCwiZGF0YSI6eyJ1c2VyX2lkIjoxLCJ1c2VyX2xvZ2luIjoiYWRtaW4iLCJ1c2VyX2VtYWlsIjoia25haW1lcm9AZ21haWwuY29tIn19.ejG__mus5Xqc83QemGIFODoF8lpgngg0de0IEZtXSwA
+@TOKEN=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczpcL1wvaG9zdC5waWRlYWkuY29tIiwiaWF0IjoxNzYyODk2MjQwLCJleHAiOjE3NjI5ODI2NDAsImRhdGEiOnsidXNlcl9pZCI6MiwidXNlcl9sb2dpbiI6Imhvc3Rfd2ViIiwidXNlcl9lbWFpbCI6InRpZW5kYXBpZGVhaUBnbWFpbC5jb20ifX0.6SBx8ED_XUVC0kKx0fIBa8hKU9j8PlppmcTIuxSd9YQ
+
+
 ### Login
 POST {{URL}}/auth/login
 Content-Type: application/json
 
 {
-  "username": "admin",
-  "password": "admin"
+  "username": "host_web",
+  "password": "@@Miguel123!!"
 }
 
 ### GET Settings
