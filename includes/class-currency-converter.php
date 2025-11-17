@@ -298,7 +298,8 @@ class Currency_Converter {
 			return false;
 		}
 
-		return floatval( $usd_amount ) * $rate;
+		// Round to 2 decimals to avoid floating point precision issues
+		return round( floatval( $usd_amount ) * $rate, 2 );
 	}
 
 	/**
@@ -318,7 +319,8 @@ class Currency_Converter {
 			return false;
 		}
 
-		return floatval( $eur_amount ) * $rate;
+		// Round to 2 decimals to avoid floating point precision issues
+		return round( floatval( $eur_amount ) * $rate, 2 );
 	}
 
 	/**
@@ -407,7 +409,10 @@ class Currency_Converter {
 	 * @return string HTML markup for the conversion display
 	 */
 	public static function get_conversion_display( $price, $show_both = true ) {
-		$conversion = self::get_conversion( $price );
+		// Parse price to handle comma decimal separator correctly
+		$price_parsed = self::parse_price( $price );
+
+		$conversion = self::get_conversion( $price_parsed );
 
 		if ( $conversion === false ) {
 			return '';
@@ -420,7 +425,7 @@ class Currency_Converter {
 
 		if ( $show_both ) {
 			$html .= '<span class="myd-original-price">';
-			$html .= esc_html( $currency_symbol ) . ' ' . number_format( $price, 2, ',', '.' );
+			$html .= esc_html( $currency_symbol ) . ' ' . number_format( $price_parsed, 2, ',', '.' );
 			$html .= ' <small>' . esc_html( $store_currency ) . '</small>';
 			$html .= '</span>';
 			$html .= '<span class="myd-currency-separator"> ≈ </span>';
@@ -435,6 +440,56 @@ class Currency_Converter {
 		$html .= '</div>';
 
 		return $html;
+	}
+
+	/**
+	 * Parse a formatted price string to float
+	 *
+	 * Handles prices stored with comma as decimal separator (e.g., "1,50")
+	 * and correctly converts them to float values
+	 *
+	 * @since 2.3.10
+	 * @param mixed $price_string The price string to parse
+	 * @return float The parsed price as float
+	 */
+	public static function parse_price( $price_string ) {
+		// If already numeric, return as float
+		if ( is_numeric( $price_string ) ) {
+			return floatval( $price_string );
+		}
+
+		// If not a string, try to convert to float
+		if ( ! is_string( $price_string ) ) {
+			return floatval( $price_string );
+		}
+
+		// If empty string, return 0
+		if ( empty( $price_string ) ) {
+			return 0.0;
+		}
+
+		// Remove all non-numeric characters except dots, commas, and minus sign
+		$price_clean = preg_replace( '/[^0-9.,\-]/', '', $price_string );
+
+		// Get store's decimal separator
+		$decimal_separator = Store_Data::get_store_data( 'decimal_separator' );
+		if ( empty( $decimal_separator ) ) {
+			$decimal_separator = ',';
+		}
+
+		// Get thousands separator
+		$thousands_separator = Store_Data::get_store_data( 'thousands_separator' );
+		if ( empty( $thousands_separator ) ) {
+			$thousands_separator = '.';
+		}
+
+		// Remove thousands separator
+		$price_clean = str_replace( $thousands_separator, '', $price_clean );
+
+		// Replace decimal separator with dot (PHP standard)
+		$price_clean = str_replace( $decimal_separator, '.', $price_clean );
+
+		return floatval( $price_clean );
 	}
 
 	/**
