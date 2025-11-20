@@ -133,8 +133,13 @@ class Place_Payment {
 
 		$order_track_link = \get_permalink( \get_option( 'fdm-page-order-track' ) ) . '?hash=' . base64_encode( $order_id );
 
-		$whatsapp_link = new Custom_Message_Whatsapp( $order_id );
-		$whatsapp_link = $whatsapp_link->get_whatsapp_redirect_link();
+		// No generar link de WhatsApp para pedidos en tienda
+		$order_ship_method = \get_post_meta( $order_id, 'order_ship_method', true );
+		$whatsapp_link = '';
+		if ( $order_ship_method !== 'order-in-store' ) {
+			$whatsapp_link = new Custom_Message_Whatsapp( $order_id );
+			$whatsapp_link = $whatsapp_link->get_whatsapp_redirect_link();
+		}
 
 		\do_action(
 			'myd-delivery/order/after-place-payment',

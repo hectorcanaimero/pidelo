@@ -67,6 +67,15 @@ class WhatsApp_Service {
 			];
 		}
 
+		// No enviar mensajes para pedidos en tienda
+		$order_ship_method = get_post_meta( $order_id, 'order_ship_method', true );
+		if ( $order_ship_method === 'order-in-store' ) {
+			return [
+				'success' => false,
+				'error'   => __( 'WhatsApp messages are disabled for in-store orders', 'myd-delivery-pro' ),
+			];
+		}
+
 		// Verificar si el evento debe enviar mensaje automático
 		if ( $event !== 'manual' && ! $this->should_send_for_event( $event ) ) {
 			return [

@@ -67,6 +67,12 @@ class Order_Hooks {
 			return;
 		}
 
+		// No enviar mensajes para pedidos en tienda
+		$order_ship_method = get_post_meta( $post_id, 'order_ship_method', true );
+		if ( $order_ship_method === 'order-in-store' ) {
+			return;
+		}
+
 		// Evitar procesamiento en AJAX no relacionado
 		if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
 			// Permitir solo en ciertos AJAX actions
@@ -111,6 +117,12 @@ class Order_Hooks {
 	 * @return void
 	 */
 	public function on_payment_completed( int $order_id ): void {
+		// No enviar mensajes para pedidos en tienda
+		$order_ship_method = get_post_meta( $order_id, 'order_ship_method', true );
+		if ( $order_ship_method === 'order-in-store' ) {
+			return;
+		}
+
 		$event = 'payment_completed';
 
 		// Verificar si el evento debe enviar mensaje
