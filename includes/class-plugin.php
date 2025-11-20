@@ -255,6 +255,7 @@ final class Plugin {
 		include_once MYD_PLUGIN_PATH . 'includes/class-store-data.php';
 		include_once MYD_PLUGIN_PATH . 'includes/admin/class-custom-posts.php';
 		include_once MYD_PLUGIN_PATH . 'includes/fdm-products-list.php';
+		include_once MYD_PLUGIN_PATH . 'includes/fdm-products-list-v2.php';
 		include_once MYD_PLUGIN_PATH . 'includes/myd-manage-cpt-columns.php';
 		include_once MYD_PLUGIN_PATH . 'includes/class-orders-front-panel.php';
 		include_once MYD_PLUGIN_PATH . 'includes/fdm-track-order.php';
@@ -443,8 +444,12 @@ final class Plugin {
 		wp_register_script( 'myd-skip-payment-in-store', MYD_PLUGN_URL . 'assets/js/skip-payment-in-store.js', array( 'myd-create-order' ), MYD_CURRENT_VERSION, true );
 
 		wp_register_style( 'myd-delivery-frontend', MYD_PLUGN_URL . 'assets/css/delivery-frontend.min.css', array(), MYD_CURRENT_VERSION );
+		wp_register_style( 'myd-delivery-frontend-v2', MYD_PLUGN_URL . 'assets/css/myd-products-v2.css', array( 'myd-delivery-frontend' ), MYD_CURRENT_VERSION );
 		wp_register_style( 'myd-order-panel-frontend', MYD_PLUGN_URL . 'assets/css/order-panel-frontend.min.css', array(), MYD_CURRENT_VERSION );
 		wp_register_style( 'myd-track-order-frontend', MYD_PLUGN_URL . 'assets/css/track-order-frontend.min.css', array(), MYD_CURRENT_VERSION );
+
+		// Register V2 Products Script
+		wp_register_script( 'myd-products-v2', MYD_PLUGN_URL . 'assets/js/myd-products-v2.js', array(), MYD_CURRENT_VERSION, true );
 
 		/**
 		 * Orders Panel
