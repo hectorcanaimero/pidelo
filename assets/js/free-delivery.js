@@ -12,12 +12,22 @@
    */
   function shouldApplyFreeDelivery(subtotal) {
     if (!window.mydStoreInfo || !window.mydStoreInfo.freeDelivery) {
+      console.log('[Free Delivery] No store info available');
       return false;
     }
 
     const { enabled, minimumAmount } = window.mydStoreInfo.freeDelivery;
 
-    return enabled && minimumAmount > 0 && subtotal >= minimumAmount;
+    const shouldApply = enabled && minimumAmount > 0 && subtotal >= minimumAmount;
+
+    console.log('[Free Delivery] Check:', {
+      enabled: enabled,
+      minimumAmount: minimumAmount,
+      subtotal: subtotal,
+      shouldApply: shouldApply,
+    });
+
+    return shouldApply;
   }
 
   /**
@@ -126,15 +136,37 @@
   }
 
   /**
+   * Force recalculation of totals with free delivery applied
+   */
+  function forceRecalculate() {
+    if (!window.MydOrder) return;
+
+    // Trigger calculateTotal
+    if (window.MydOrder.calculateTotal) {
+      console.log('[Free Delivery] Forcing recalculation');
+      window.MydOrder.calculateTotal();
+    }
+
+    // Also update the DOM if needed
+    const subtotal = window.MydOrder.subtotal || 0;
+    if (shouldApplyFreeDelivery(subtotal)) {
+      // Update delivery price in DOM
+      const deliveryPriceElement = document.querySelector('.myd-cart__payment-amount-delivery .myd-cart__payment-amount-info-number');
+      if (deliveryPriceElement) {
+        const currencySymbol = window.mydStoreInfo?.currency?.symbol || '$';
+        deliveryPriceElement.textContent = currencySymbol + ' 0.00';
+      }
+    }
+  }
+
+  /**
    * Monitor cart updates to reapply free delivery logic
    */
   function monitorCartUpdates() {
     // Listen to custom events that might be triggered when cart updates
     if (window.Myd && window.Myd.on) {
       window.Myd.on('MydCartUpdated', function () {
-        if (window.MydOrder && window.MydOrder.calculateTotal) {
-          window.MydOrder.calculateTotal();
-        }
+        setTimeout(forceRecalculate, 100);
       });
     }
 
@@ -148,8 +180,8 @@
         }
       });
 
-      if (shouldRecalculate && window.MydOrder && window.MydOrder.calculateTotal) {
-        window.MydOrder.calculateTotal();
+      if (shouldRecalculate) {
+        setTimeout(forceRecalculate, 100);
       }
     });
 
@@ -160,6 +192,23 @@
         subtree: true,
       });
     }
+
+    // Monitor delivery method changes
+    const deliveryMethodInputs = document.querySelectorAll('input[name="myd-delivery-method"]');
+    deliveryMethodInputs.forEach(function (input) {
+      input.addEventListener('change', function () {
+        console.log('[Free Delivery] Delivery method changed');
+        setTimeout(forceRecalculate, 200);
+      });
+    });
+
+    // Monitor when checkout tab changes
+    const checkoutTabs = document.querySelectorAll('.myd-checkout__nav-item');
+    checkoutTabs.forEach(function (tab) {
+      tab.addEventListener('click', function () {
+        setTimeout(forceRecalculate, 300);
+      });
+    });
   }
 
   /**
@@ -180,6 +229,12 @@
     overrideCalculateTotal();
     overrideDeliverySet();
     monitorCartUpdates();
+
+    // Force initial calculation after a delay to ensure everything is loaded
+    setTimeout(function () {
+      console.log('[Free Delivery] Initial calculation');
+      forceRecalculate();
+    }, 1000);
   }
 
   // Initialize when DOM is ready

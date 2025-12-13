@@ -182,6 +182,26 @@ class Settings extends Admin_Settings {
 				]
 			],
 			[
+				'name' => 'myd-free-delivery-enabled',
+				'option_group' => self::CONFIG_GROUP,
+				'args' => [
+					'sanitize_callback' => 'sanitize_text_field',
+					'default' => 'no',
+				]
+			],
+			[
+				'name' => 'myd-free-delivery-amount',
+				'option_group' => self::CONFIG_GROUP,
+				'args' => [
+					'sanitize_callback' => function( $value ) {
+						// Convertir a float y asegurar que sea positivo
+						$float_value = floatval( $value );
+						return $float_value < 0 ? '0' : strval( $float_value );
+					},
+					'default' => '0',
+				]
+			],
+			[
 				'name' => 'myd-products-list-columns',
 				'option_group' => self::CONFIG_GROUP,
 				'args' => [
