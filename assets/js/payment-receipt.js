@@ -359,13 +359,20 @@
 
       // Validación: Verificar que se haya seleccionado un método de pago si el campo está visible
       if (paymentType === 'upon-delivery' && isFileInputVisible) {
-        const paymentOption = this.payment.get().option;
+        const paymentData = this.payment.get();
+        const paymentOption = paymentData.option;
+
+        // Verificar también si hay un radio button seleccionado
+        const selectedRadio = document.querySelector('.myd-cart__payment-input-option:checked');
 
         console.log('[DEBUG] Payment validation:', {
           paymentType: paymentType,
           paymentOption: paymentOption,
+          paymentData: paymentData,
           hasFile: hasFile,
           isFileInputVisible: isFileInputVisible,
+          selectedRadio: selectedRadio,
+          selectedRadioValue: selectedRadio ? selectedRadio.value : null,
         });
 
         // Si no hay archivo y el comprobante es obligatorio
@@ -387,8 +394,10 @@
         }
 
         // Si hay archivo pero no se seleccionó método de pago
-        // NOTA: Solo validamos si paymentOption está vacío O es undefined O es null
-        if (hasFile && (!paymentOption || paymentOption.trim() === '')) {
+        // Verificamos tanto el objeto payment como el DOM directamente
+        const hasPaymentMethod = (paymentOption && paymentOption.trim() !== '') || selectedRadio;
+
+        if (hasFile && !hasPaymentMethod) {
           window.Myd.removeLoadingAnimation('.myd-cart__button-text');
 
           showUploadError('Debes seleccionar un método de pago antes de continuar');
