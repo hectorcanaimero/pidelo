@@ -357,26 +357,48 @@
         });
       }
 
-      // Validación: Solo requerir comprobante si el pago es "upon-delivery" y el campo está visible
-      if (paymentType === 'upon-delivery' && isFileInputVisible && !hasFile) {
-        // Detener el loading del botón
-        window.Myd.removeLoadingAnimation('.myd-cart__button-text');
+      // Validación: Verificar que se haya seleccionado un método de pago si el campo está visible
+      if (paymentType === 'upon-delivery' && isFileInputVisible) {
+        const paymentOption = this.payment.get().option;
 
-        // Mostrar mensaje de advertencia visual
-        showMissingReceiptWarning();
+        // Si hay archivo pero no se seleccionó método de pago
+        if (hasFile && !paymentOption) {
+          window.Myd.removeLoadingAnimation('.myd-cart__button-text');
 
-        // Mostrar alerta nativa (mejor UX en mobile)
-        alert(
-          '⚠️ Comprobante de Pago Obligatorio\n\nPor favor, adjunta tu comprobante de pago para continuar con el pedido.',
-        );
+          showUploadError('Debes seleccionar un método de pago antes de continuar');
 
-        // Hacer scroll al campo y hacer focus (con timeout para mobile)
-        setTimeout(() => {
-          fileInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          fileInput.focus();
-        }, 100);
+          alert(
+            '⚠️ Método de Pago Requerido\n\nPor favor, selecciona un método de pago (Efectivo, Transferencia, etc.) para continuar.',
+          );
 
-        return false;
+          // Hacer scroll a las opciones de pago
+          const paymentOptions = document.querySelector('.myd-cart__payment-options-container');
+          if (paymentOptions) {
+            setTimeout(() => {
+              paymentOptions.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
+          }
+
+          return false;
+        }
+
+        // Si no hay archivo y el comprobante es obligatorio
+        if (!hasFile) {
+          window.Myd.removeLoadingAnimation('.myd-cart__button-text');
+
+          showMissingReceiptWarning();
+
+          alert(
+            '⚠️ Comprobante de Pago Obligatorio\n\nPor favor, adjunta tu comprobante de pago para continuar con el pedido.',
+          );
+
+          setTimeout(() => {
+            fileInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            fileInput.focus();
+          }, 100);
+
+          return false;
+        }
       }
 
       // If no file (but not required), use original method
