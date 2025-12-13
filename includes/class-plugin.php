@@ -442,6 +442,9 @@ final class Plugin {
 		// Register skip payment in store handler
 		wp_register_script( 'myd-skip-payment-in-store', MYD_PLUGN_URL . 'assets/js/skip-payment-in-store.js', array( 'myd-create-order' ), MYD_CURRENT_VERSION, true );
 
+		// Register free delivery handler
+		wp_register_script( 'myd-free-delivery', MYD_PLUGN_URL . 'assets/js/free-delivery.js', array( 'myd-create-order' ), MYD_CURRENT_VERSION, true );
+
 		wp_register_style( 'myd-delivery-frontend', MYD_PLUGN_URL . 'assets/css/delivery-frontend.min.css', array(), MYD_CURRENT_VERSION );
 		wp_register_style( 'myd-order-panel-frontend', MYD_PLUGN_URL . 'assets/css/order-panel-frontend.min.css', array(), MYD_CURRENT_VERSION );
 		wp_register_style( 'myd-track-order-frontend', MYD_PLUGN_URL . 'assets/css/track-order-frontend.min.css', array(), MYD_CURRENT_VERSION );

@@ -85,6 +85,50 @@ if ( isset( $delivery_mode_options[0] ) && $delivery_mode_options[0] === 'initia
 
 			<tr>
 				<th scope="row">
+					<label for="myd-free-delivery-enabled"><?php esc_html_e( 'Delivery gratis por monto mínimo', 'myd-delivery-pro' );?></label>
+				</th>
+				<td>
+					<label>
+						<input
+							type="checkbox"
+							name="myd-free-delivery-enabled"
+							id="myd-free-delivery-enabled"
+							value="yes"
+							<?php checked( get_option( 'myd-free-delivery-enabled' ), 'yes' ); ?>
+						>
+						<?php esc_html_e( 'Activar delivery gratis cuando la compra supera un monto', 'myd-delivery-pro' );?>
+					</label>
+					<p class="description"><?php esc_html_e( 'Cuando está activado, si el subtotal del pedido supera el monto configurado, el costo de delivery será 0.', 'myd-delivery-pro' );?></p>
+
+					<div id="myd-free-delivery-amount-field" style="margin-top: 15px; <?php echo ( get_option( 'myd-free-delivery-enabled' ) !== 'yes' ) ? 'display:none;' : ''; ?>">
+						<label for="myd-free-delivery-amount">
+							<?php esc_html_e( 'Monto mínimo para delivery gratis:', 'myd-delivery-pro' ); ?>
+						</label><br>
+						<input
+							type="number"
+							step="0.01"
+							min="0"
+							name="myd-free-delivery-amount"
+							id="myd-free-delivery-amount"
+							value="<?php echo esc_attr( get_option( 'myd-free-delivery-amount', '0' ) ); ?>"
+							class="regular-text"
+							placeholder="<?php esc_attr_e( 'Ej: 50.00', 'myd-delivery-pro' ); ?>"
+						>
+						<p class="description">
+							<?php esc_html_e( 'Ingrese el monto mínimo del subtotal. Si el pedido supera este monto, el delivery será gratis. El monto debe estar en la moneda configurada en la tienda.', 'myd-delivery-pro' ); ?>
+						</p>
+					</div>
+
+					<script>
+					document.getElementById('myd-free-delivery-enabled').addEventListener('change', function() {
+						document.getElementById('myd-free-delivery-amount-field').style.display = this.checked ? 'block' : 'none';
+					});
+					</script>
+				</td>
+			</tr>
+
+			<tr>
+				<th scope="row">
 					<label for="myd-delivery-mode"><?php esc_html_e( 'Delivery price mode', 'myd-delivery-pro' );?></label>
 				</th>
 				<td>

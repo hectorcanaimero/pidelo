@@ -40,6 +40,8 @@ class Settings_Api {
 		'myd-delivery-time' => array(),
 		'myd-delivery-mode' => '',
 		'myd-delivery-mode-options' => array(),
+		'myd-free-delivery-enabled' => 'no',
+		'myd-free-delivery-amount' => '0',
 
 		// Store settings
 		'fdm-list-menu-categories' => '',

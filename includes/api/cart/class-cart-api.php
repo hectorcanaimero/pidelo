@@ -480,6 +480,14 @@ class Cart_Api {
 			$discount = $this->calculate_coupon_discount( $coupon, $subtotal, $delivery_price );
 		}
 
+		// Apply free delivery if enabled and minimum amount is met
+		$free_delivery_enabled = get_option( 'myd-free-delivery-enabled' ) === 'yes';
+		$free_delivery_amount = floatval( get_option( 'myd-free-delivery-amount', 0 ) );
+
+		if ( $free_delivery_enabled && $free_delivery_amount > 0 && $subtotal >= $free_delivery_amount ) {
+			$delivery_price = 0;
+		}
+
 		$total = $subtotal + $delivery_price - $discount;
 
 		return array(
@@ -487,6 +495,7 @@ class Cart_Api {
 			'delivery_price' => round( $delivery_price, 2 ),
 			'discount' => round( $discount, 2 ),
 			'total' => round( $total, 2 ),
+			'free_delivery_applied' => ( $free_delivery_enabled && $free_delivery_amount > 0 && $subtotal >= $free_delivery_amount ),
 		);
 	}
 
