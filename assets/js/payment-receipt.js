@@ -361,26 +361,12 @@
       if (paymentType === 'upon-delivery' && isFileInputVisible) {
         const paymentOption = this.payment.get().option;
 
-        // Si hay archivo pero no se seleccionó método de pago
-        if (hasFile && !paymentOption) {
-          window.Myd.removeLoadingAnimation('.myd-cart__button-text');
-
-          showUploadError('Debes seleccionar un método de pago antes de continuar');
-
-          alert(
-            '⚠️ Método de Pago Requerido\n\nPor favor, selecciona un método de pago (Efectivo, Transferencia, etc.) para continuar.',
-          );
-
-          // Hacer scroll a las opciones de pago
-          const paymentOptions = document.querySelector('.myd-cart__payment-options-container');
-          if (paymentOptions) {
-            setTimeout(() => {
-              paymentOptions.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }, 100);
-          }
-
-          return false;
-        }
+        console.log('[DEBUG] Payment validation:', {
+          paymentType: paymentType,
+          paymentOption: paymentOption,
+          hasFile: hasFile,
+          isFileInputVisible: isFileInputVisible,
+        });
 
         // Si no hay archivo y el comprobante es obligatorio
         if (!hasFile) {
@@ -396,6 +382,28 @@
             fileInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
             fileInput.focus();
           }, 100);
+
+          return false;
+        }
+
+        // Si hay archivo pero no se seleccionó método de pago
+        // NOTA: Solo validamos si paymentOption está vacío O es undefined O es null
+        if (hasFile && (!paymentOption || paymentOption.trim() === '')) {
+          window.Myd.removeLoadingAnimation('.myd-cart__button-text');
+
+          showUploadError('Debes seleccionar un método de pago antes de continuar');
+
+          alert(
+            '⚠️ Método de Pago Requerido\n\nPor favor, selecciona un método de pago (Efectivo, Transferencia, etc.) para continuar.',
+          );
+
+          // Hacer scroll a las opciones de pago
+          const paymentOptions = document.querySelector('.myd-cart__payment-options-container');
+          if (paymentOptions) {
+            setTimeout(() => {
+              paymentOptions.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
+          }
 
           return false;
         }
