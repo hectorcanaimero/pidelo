@@ -307,6 +307,7 @@ class Fdm_products_show {
 		\wp_enqueue_script( 'myd-payment-receipt' );
 		\wp_enqueue_script( 'myd-skip-payment-in-store' );
 		\wp_enqueue_script( 'myd-free-delivery' );
+		\wp_enqueue_script( 'myd-cart-fix' );
 		\wp_enqueue_style( 'myd-delivery-frontend' );
 
 		ob_start();
