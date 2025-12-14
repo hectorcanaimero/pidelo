@@ -68,6 +68,45 @@
     }
   }
 
+  // Store current free delivery state
+  let freeDeliveryActive = false;
+
+  /**
+   * Apply free delivery to current DOM
+   */
+  function applyFreeDeliveryToDOM() {
+    if (!freeDeliveryActive) return;
+
+    console.log('[Free Delivery] Attempting to apply to DOM...');
+    updateDeliveryPriceInDOM(true);
+    showFreeDeliveryMessage();
+  }
+
+  /**
+   * Watch for DOM changes and reapply free delivery
+   */
+  function watchForDOMChanges() {
+    const targetNode = document.body;
+
+    const observer = new MutationObserver((mutations) => {
+      // Check if the delivery fee element was added/modified
+      const deliveryElement = document.querySelector('#myd-cart-payment-delivery-fee-value');
+
+      if (deliveryElement && freeDeliveryActive) {
+        console.log('[Free Delivery] DOM updated, reapplying free delivery');
+        // Small delay to ensure rendering is complete
+        setTimeout(applyFreeDeliveryToDOM, 10);
+      }
+    });
+
+    observer.observe(targetNode, {
+      childList: true,
+      subtree: true,
+    });
+
+    console.log('[Free Delivery] DOM observer installed');
+  }
+
   /**
    * Check cart response data for free delivery flag
    */
@@ -80,25 +119,18 @@
       free_delivery_applied: data.free_delivery_applied,
     });
 
-    // The backend already calculates free delivery
-    // We just need to show the UI badge if it's applied
-    if (data.free_delivery_applied === true) {
+    // Update global state
+    freeDeliveryActive = data.free_delivery_applied === true;
+
+    if (freeDeliveryActive) {
       console.log('[Free Delivery] Free delivery applied by backend!');
 
-      // Try immediate update first
-      updateDeliveryPriceInDOM(true);
-      showFreeDeliveryMessage();
+      // Apply immediately
+      applyFreeDeliveryToDOM();
 
-      // Also try with delays to catch any late DOM updates
-      setTimeout(() => {
-        updateDeliveryPriceInDOM(true);
-        showFreeDeliveryMessage();
-      }, 50);
-
-      setTimeout(() => {
-        updateDeliveryPriceInDOM(true);
-        showFreeDeliveryMessage();
-      }, 200);
+      // Also try with delay in case DOM hasn't updated yet
+      setTimeout(applyFreeDeliveryToDOM, 100);
+      setTimeout(applyFreeDeliveryToDOM, 300);
     } else {
       hideFreeDeliveryMessage();
     }
@@ -211,6 +243,9 @@
     // Install interceptors to monitor cart API responses
     interceptFetchRequests();
     interceptXHRRequests();
+
+    // Watch for DOM changes to reapply free delivery
+    watchForDOMChanges();
 
     console.log('[Free Delivery] Initialization complete');
   }
