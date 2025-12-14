@@ -87,11 +87,34 @@
 
       // Check if free delivery should be applied
       if (shouldApplyFreeDelivery(subtotal)) {
+        console.log('[Free Delivery] Applying free delivery! Subtotal:', subtotal);
+
         // Set delivery price to 0
         this.delivery = 0;
 
         // Recalculate total
         this.total = subtotal + this.delivery - this.discount;
+
+        // Update DOM
+        const deliveryElement = document.querySelector('.myd-cart__payment-amount-delivery .myd-cart__payment-amount-info-number');
+        const totalElement = document.querySelector('.myd-cart__payment-amount-total .myd-cart__payment-amount-info-number');
+
+        if (deliveryElement) {
+          const currencySymbol = window.mydStoreInfo?.currency?.symbol || '$';
+          const decimalSeparator = window.mydStoreInfo?.currency?.decimalSeparator || '.';
+          const decimalNumbers = window.mydStoreInfo?.currency?.decimalNumbers || 2;
+
+          deliveryElement.textContent = currencySymbol + ' 0' + decimalSeparator + '0'.repeat(decimalNumbers);
+        }
+
+        if (totalElement) {
+          const currencySymbol = window.mydStoreInfo?.currency?.symbol || '$';
+          const decimalSeparator = window.mydStoreInfo?.currency?.decimalSeparator || '.';
+          const decimalNumbers = window.mydStoreInfo?.currency?.decimalNumbers || 2;
+
+          const totalFormatted = this.total.toFixed(decimalNumbers).replace('.', decimalSeparator);
+          totalElement.textContent = currencySymbol + ' ' + totalFormatted;
+        }
 
         // Show free delivery message
         showFreeDeliveryMessage();
