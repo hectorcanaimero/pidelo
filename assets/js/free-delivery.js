@@ -67,7 +67,8 @@
    * Override MydOrder.calculateTotal to apply free delivery logic
    */
   function overrideCalculateTotal() {
-    if (!window.MydOrder) {
+    if (!window.MydOrder || !window.MydOrder.calculateTotal) {
+      console.log('[Free Delivery] Waiting for MydOrder.calculateTotal...');
       setTimeout(overrideCalculateTotal, 500);
       return;
     }
@@ -133,7 +134,8 @@
    * Override MydOrder.delivery.set to prevent overriding free delivery
    */
   function overrideDeliverySet() {
-    if (!window.MydOrder || !window.MydOrder.delivery) {
+    if (!window.MydOrder || !window.MydOrder.delivery || !window.MydOrder.delivery.set) {
+      console.log('[Free Delivery] Waiting for MydOrder.delivery.set...');
       setTimeout(overrideDeliverySet, 500);
       return;
     }
