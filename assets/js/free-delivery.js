@@ -80,15 +80,18 @@
 
     // Override with new method
     window.MydOrder.calculateTotal = function () {
-      // Call original method first
+      // Call original method first to calculate everything
       const result = window.MydOrder._originalCalculateTotal();
 
-      // Get current subtotal
+      // Get current subtotal AFTER original calculation
       const subtotal = this.subtotal || 0;
+      const currentDelivery = this.delivery || 0;
+
+      console.log('[Free Delivery] After calculateTotal - subtotal:', subtotal, 'delivery:', currentDelivery);
 
       // Check if free delivery should be applied
       if (shouldApplyFreeDelivery(subtotal)) {
-        console.log('[Free Delivery] Applying free delivery! Subtotal:', subtotal);
+        console.log('[Free Delivery] Applying free delivery! Setting delivery to 0');
 
         // Set delivery price to 0
         this.delivery = 0;
@@ -96,29 +99,37 @@
         // Recalculate total
         this.total = subtotal + this.delivery - this.discount;
 
-        // Update DOM
-        const deliveryElement = document.querySelector('.myd-cart__payment-amount-delivery .myd-cart__payment-amount-info-number');
-        const totalElement = document.querySelector('.myd-cart__payment-amount-total .myd-cart__payment-amount-info-number');
+        console.log('[Free Delivery] New total:', this.total);
 
-        if (deliveryElement) {
-          const currencySymbol = window.mydStoreInfo?.currency?.symbol || '$';
-          const decimalSeparator = window.mydStoreInfo?.currency?.decimalSeparator || '.';
-          const decimalNumbers = window.mydStoreInfo?.currency?.decimalNumbers || 2;
+        // Force DOM update with setTimeout to ensure it happens after the original method's DOM updates
+        setTimeout(function () {
+          const deliveryElement = document.querySelector('.myd-cart__payment-amount-delivery .myd-cart__payment-amount-info-number');
+          const totalElement = document.querySelector('.myd-cart__payment-amount-total .myd-cart__payment-amount-info-number');
 
-          deliveryElement.textContent = currencySymbol + ' 0' + decimalSeparator + '0'.repeat(decimalNumbers);
-        }
+          if (deliveryElement) {
+            const currencySymbol = window.mydStoreInfo?.currency?.symbol || '$';
+            const decimalSeparator = window.mydStoreInfo?.currency?.decimalSeparator || '.';
+            const decimalNumbers = window.mydStoreInfo?.currency?.decimalNumbers || 2;
 
-        if (totalElement) {
-          const currencySymbol = window.mydStoreInfo?.currency?.symbol || '$';
-          const decimalSeparator = window.mydStoreInfo?.currency?.decimalSeparator || '.';
-          const decimalNumbers = window.mydStoreInfo?.currency?.decimalNumbers || 2;
+            const newText = currencySymbol + ' 0' + decimalSeparator + '0'.repeat(decimalNumbers);
+            console.log('[Free Delivery] Updating delivery DOM to:', newText);
+            deliveryElement.textContent = newText;
+          }
 
-          const totalFormatted = this.total.toFixed(decimalNumbers).replace('.', decimalSeparator);
-          totalElement.textContent = currencySymbol + ' ' + totalFormatted;
-        }
+          if (totalElement) {
+            const currencySymbol = window.mydStoreInfo?.currency?.symbol || '$';
+            const decimalSeparator = window.mydStoreInfo?.currency?.decimalSeparator || '.';
+            const decimalNumbers = window.mydStoreInfo?.currency?.decimalNumbers || 2;
 
-        // Show free delivery message
-        showFreeDeliveryMessage();
+            const total = window.MydOrder.total || 0;
+            const totalFormatted = total.toFixed(decimalNumbers).replace('.', decimalSeparator);
+            console.log('[Free Delivery] Updating total DOM to:', totalFormatted);
+            totalElement.textContent = currencySymbol + ' ' + totalFormatted;
+          }
+
+          // Show free delivery message
+          showFreeDeliveryMessage();
+        }, 10);
       } else {
         // Hide message if subtotal is below minimum
         hideFreeDeliveryMessage();
