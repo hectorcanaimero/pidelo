@@ -62,8 +62,26 @@
 
       // Also update MydOrder.delivery if it exists
       if (window.MydOrder) {
+        const oldDelivery = window.MydOrder.delivery || 0;
         window.MydOrder.delivery = 0;
+
+        // Recalculate total
+        const subtotal = window.MydOrder.subtotal || 0;
+        const discount = window.MydOrder.discount || 0;
+        const newTotal = subtotal - discount;
+        window.MydOrder.total = newTotal;
+
         console.log('[Free Delivery] Updated MydOrder.delivery to 0');
+        console.log('[Free Delivery] Recalculated total:', newTotal, '(was:', subtotal + oldDelivery - discount, ')');
+
+        // Update total in DOM
+        const totalElement = document.querySelector('#myd-cart-payment-total-value .myd-cart__summary-price-usd');
+        if (totalElement) {
+          const totalFormatted = newTotal.toFixed(decimalNumbers).replace('.', decimalSeparator);
+          const totalText = currencySymbol + ' ' + totalFormatted;
+          console.log('[Free Delivery] Updating total to:', totalText);
+          totalElement.textContent = totalText;
+        }
       }
     }
   }
