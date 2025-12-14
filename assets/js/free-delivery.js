@@ -9,23 +9,25 @@
    * Show free delivery message
    */
   function showFreeDeliveryMessage() {
-    const deliveryPriceElement = document.querySelector(
-      '.myd-cart__payment-amount-delivery .myd-cart__payment-amount-info-number',
-    );
-    if (!deliveryPriceElement) return;
+    const deliveryFeeValue = document.querySelector('#myd-cart-payment-delivery-fee-value');
+    if (!deliveryFeeValue) {
+      console.log('[Free Delivery] Delivery fee value element not found');
+      return;
+    }
 
     // Check if message already exists
-    if (deliveryPriceElement.querySelector('.myd-free-delivery-badge')) {
+    if (deliveryFeeValue.querySelector('.myd-free-delivery-badge')) {
       return;
     }
 
     const message = window.mydStoreInfo?.messages?.freeDelivery || 'Delivery gratis!';
-    const badge = document.createElement('span');
+    const badge = document.createElement('div');
     badge.className = 'myd-free-delivery-badge';
-    badge.textContent = ' ' + message;
-    badge.style.cssText = 'color: #4caf50; font-weight: bold; font-size: 0.85em; margin-left: 5px;';
+    badge.textContent = message;
+    badge.style.cssText = 'color: #4caf50; font-weight: bold; font-size: 0.9em; margin-top: 4px;';
 
-    deliveryPriceElement.appendChild(badge);
+    deliveryFeeValue.appendChild(badge);
+    console.log('[Free Delivery] Badge added to DOM');
   }
 
   /**
@@ -42,12 +44,10 @@
    * Update delivery price in DOM
    */
   function updateDeliveryPriceInDOM(isFree) {
-    const deliveryElement = document.querySelector(
-      '.myd-cart__payment-amount-delivery .myd-cart__payment-amount-info-number',
-    );
+    const deliveryElement = document.querySelector('#myd-cart-payment-delivery-fee-value .myd-cart__summary-price-usd');
 
     if (!deliveryElement) {
-      console.log('[Free Delivery] Delivery element not found in DOM');
+      console.log('[Free Delivery] Delivery price element not found in DOM');
       return;
     }
 
@@ -85,14 +85,20 @@
     if (data.free_delivery_applied === true) {
       console.log('[Free Delivery] Free delivery applied by backend!');
 
-      // Use setTimeout to ensure DOM is updated after any other scripts
-      setTimeout(() => {
-        // Update delivery price in DOM to $0
-        updateDeliveryPriceInDOM(true);
+      // Try immediate update first
+      updateDeliveryPriceInDOM(true);
+      showFreeDeliveryMessage();
 
-        // Show the badge
+      // Also try with delays to catch any late DOM updates
+      setTimeout(() => {
+        updateDeliveryPriceInDOM(true);
         showFreeDeliveryMessage();
       }, 50);
+
+      setTimeout(() => {
+        updateDeliveryPriceInDOM(true);
+        showFreeDeliveryMessage();
+      }, 200);
     } else {
       hideFreeDeliveryMessage();
     }
