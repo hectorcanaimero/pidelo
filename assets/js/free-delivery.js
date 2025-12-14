@@ -6,31 +6,6 @@
   'use strict';
 
   /**
-   * Check if free delivery should be applied based on subtotal
-   * @param {number} subtotal - The order subtotal
-   * @returns {boolean} - Whether free delivery should be applied
-   */
-  function shouldApplyFreeDelivery(subtotal) {
-    if (!window.mydStoreInfo || !window.mydStoreInfo.freeDelivery) {
-      console.log('[Free Delivery] No store info available');
-      return false;
-    }
-
-    const { enabled, minimumAmount } = window.mydStoreInfo.freeDelivery;
-
-    const shouldApply = enabled && minimumAmount > 0 && subtotal >= minimumAmount;
-
-    console.log('[Free Delivery] Check:', {
-      enabled: enabled,
-      minimumAmount: minimumAmount,
-      subtotal: subtotal,
-      shouldApply: shouldApply,
-    });
-
-    return shouldApply;
-  }
-
-  /**
    * Show free delivery message
    */
   function showFreeDeliveryMessage() {
@@ -64,197 +39,96 @@
   }
 
   /**
-   * Override MydOrder.calculateTotal to apply free delivery logic
+   * Check cart response data for free delivery flag
    */
-  function overrideCalculateTotal() {
-    if (!window.MydOrder || !window.MydOrder.calculateTotal) {
-      console.log('[Free Delivery] Waiting for MydOrder.calculateTotal...');
-      setTimeout(overrideCalculateTotal, 500);
-      return;
+  function checkFreeDeliveryFromResponse(data) {
+    if (!data || typeof data !== 'object') return;
+
+    console.log('[Free Delivery] Checking cart response:', {
+      subtotal: data.subtotal,
+      delivery_price: data.delivery_price,
+      free_delivery_applied: data.free_delivery_applied,
+    });
+
+    // The backend already calculates free delivery
+    // We just need to show the UI badge if it's applied
+    if (data.free_delivery_applied === true) {
+      console.log('[Free Delivery] Free delivery applied by backend!');
+      showFreeDeliveryMessage();
+    } else {
+      hideFreeDeliveryMessage();
     }
+  }
 
-    // Store original method if not already stored
-    if (!window.MydOrder._originalCalculateTotal) {
-      window.MydOrder._originalCalculateTotal = window.MydOrder.calculateTotal.bind(window.MydOrder);
-    }
+  /**
+   * Intercept fetch requests to monitor cart API responses
+   */
+  function interceptFetchRequests() {
+    const originalFetch = window.fetch;
 
-    // Override with new method
-    window.MydOrder.calculateTotal = function () {
-      // Call original method first to calculate everything
-      const result = window.MydOrder._originalCalculateTotal();
+    window.fetch = function (...args) {
+      return originalFetch.apply(this, args).then((response) => {
+        // Clone response so we can read it
+        const clonedResponse = response.clone();
 
-      // Use setTimeout to ensure we check AFTER all calculations are done
-      setTimeout(() => {
-        // Get current subtotal AFTER original calculation completes
-        const subtotal = window.MydOrder.subtotal || 0;
-        const currentDelivery = window.MydOrder.delivery || 0;
-
-        console.log('[Free Delivery] After calculateTotal - subtotal:', subtotal, 'delivery:', currentDelivery);
-
-        // Check if free delivery should be applied
-        if (shouldApplyFreeDelivery(subtotal)) {
-          console.log('[Free Delivery] Applying free delivery! Setting delivery to 0');
-
-          // Set delivery price to 0
-          window.MydOrder.delivery = 0;
-
-          // Recalculate total
-          window.MydOrder.total = subtotal + window.MydOrder.delivery - (window.MydOrder.discount || 0);
-
-          console.log('[Free Delivery] New total:', window.MydOrder.total);
-
-          // Force DOM update
-          const deliveryElement = document.querySelector(
-            '.myd-cart__payment-amount-delivery .myd-cart__payment-amount-info-number',
-          );
-          const totalElement = document.querySelector(
-            '.myd-cart__payment-amount-total .myd-cart__payment-amount-info-number',
-          );
-
-          if (deliveryElement) {
-            const currencySymbol = window.mydStoreInfo?.currency?.symbol || '$';
-            const decimalSeparator = window.mydStoreInfo?.currency?.decimalSeparator || '.';
-            const decimalNumbers = window.mydStoreInfo?.currency?.decimalNumbers || 2;
-
-            const newText = currencySymbol + ' 0' + decimalSeparator + '0'.repeat(decimalNumbers);
-            console.log('[Free Delivery] Updating delivery DOM to:', newText);
-            deliveryElement.textContent = newText;
-          }
-
-          if (totalElement) {
-            const currencySymbol = window.mydStoreInfo?.currency?.symbol || '$';
-            const decimalSeparator = window.mydStoreInfo?.currency?.decimalSeparator || '.';
-            const decimalNumbers = window.mydStoreInfo?.currency?.decimalNumbers || 2;
-
-            const total = window.MydOrder.total || 0;
-            const totalFormatted = total.toFixed(decimalNumbers).replace('.', decimalSeparator);
-            console.log('[Free Delivery] Updating total DOM to:', totalFormatted);
-            totalElement.textContent = currencySymbol + ' ' + totalFormatted;
-          }
-
-          // Show free delivery message
-          showFreeDeliveryMessage();
-        } else {
-          // Hide message if subtotal is below minimum
-          hideFreeDeliveryMessage();
+        // Check if this is a cart-related request
+        const url = args[0];
+        if (typeof url === 'string' && (url.includes('admin-ajax.php') || url.includes('/cart'))) {
+          clonedResponse
+            .json()
+            .then((data) => {
+              // Check for cart totals in response
+              if (data && (data.subtotal !== undefined || data.free_delivery_applied !== undefined)) {
+                checkFreeDeliveryFromResponse(data);
+              }
+            })
+            .catch(() => {
+              // Not JSON or parsing failed, ignore
+            });
         }
-      }, 100); // Wait 50ms to ensure original method completes all its work
 
-      return result;
-    };
-
-    console.log('[Free Delivery] Override applied to MydOrder.calculateTotal');
-  }
-
-  /**
-   * Override MydOrder.delivery.set to prevent overriding free delivery
-   */
-  function overrideDeliverySet() {
-    if (!window.MydOrder || !window.MydOrder.delivery || !window.MydOrder.delivery.set) {
-      console.log('[Free Delivery] Waiting for MydOrder.delivery.set...');
-      setTimeout(overrideDeliverySet, 500);
-      return;
-    }
-
-    // Store original method
-    if (!window.MydOrder.delivery._originalSet) {
-      window.MydOrder.delivery._originalSet = window.MydOrder.delivery.set.bind(window.MydOrder.delivery);
-    }
-
-    // Override set method
-    window.MydOrder.delivery.set = function (deliveryPrice) {
-      // Check if free delivery is active
-      const subtotal = window.MydOrder.subtotal || 0;
-
-      if (shouldApplyFreeDelivery(subtotal)) {
-        // Force delivery to 0 if free delivery is active
-        deliveryPrice = 0;
-      }
-
-      // Call original method
-      return window.MydOrder.delivery._originalSet(deliveryPrice);
-    };
-
-    console.log('[Free Delivery] Override applied to MydOrder.delivery.set');
-  }
-
-  /**
-   * Force recalculation of totals with free delivery applied
-   */
-  function forceRecalculate() {
-    if (!window.MydOrder) return;
-
-    // Trigger calculateTotal
-    if (window.MydOrder.calculateTotal) {
-      console.log('[Free Delivery] Forcing recalculation');
-      window.MydOrder.calculateTotal();
-    }
-
-    // Also update the DOM if needed
-    const subtotal = window.MydOrder.subtotal || 0;
-    if (shouldApplyFreeDelivery(subtotal)) {
-      // Update delivery price in DOM
-      const deliveryPriceElement = document.querySelector(
-        '.myd-cart__payment-amount-delivery .myd-cart__payment-amount-info-number',
-      );
-      if (deliveryPriceElement) {
-        const currencySymbol = window.mydStoreInfo?.currency?.symbol || '$';
-        deliveryPriceElement.textContent = currencySymbol + ' 0.00';
-      }
-    }
-  }
-
-  /**
-   * Monitor cart updates to reapply free delivery logic
-   */
-  function monitorCartUpdates() {
-    // Listen to custom events that might be triggered when cart updates
-    if (window.Myd && window.Myd.on) {
-      window.Myd.on('MydCartUpdated', function () {
-        setTimeout(forceRecalculate, 100);
+        return response;
       });
-    }
+    };
 
-    // Observe changes to cart items
-    const observer = new MutationObserver(function (mutations) {
-      let shouldRecalculate = false;
+    console.log('[Free Delivery] Fetch interceptor installed');
+  }
 
-      mutations.forEach(function (mutation) {
-        if (mutation.target.classList && mutation.target.classList.contains('myd-cart__products')) {
-          shouldRecalculate = true;
+  /**
+   * Override XMLHttpRequest to monitor AJAX cart responses
+   */
+  function interceptXHRRequests() {
+    const originalOpen = XMLHttpRequest.prototype.open;
+    const originalSend = XMLHttpRequest.prototype.send;
+
+    XMLHttpRequest.prototype.open = function (method, url, ...args) {
+      this._url = url;
+      return originalOpen.apply(this, [method, url, ...args]);
+    };
+
+    XMLHttpRequest.prototype.send = function (...args) {
+      this.addEventListener('load', function () {
+        // Check if this is a cart-related AJAX request
+        if (this._url && this._url.includes('admin-ajax.php')) {
+          try {
+            const response = JSON.parse(this.responseText);
+            if (response && response.data) {
+              checkFreeDeliveryFromResponse(response.data);
+            } else {
+              checkFreeDeliveryFromResponse(response);
+            }
+          } catch (e) {
+            // Not JSON, ignore
+          }
         }
       });
 
-      if (shouldRecalculate) {
-        setTimeout(forceRecalculate, 100);
-      }
-    });
+      return originalSend.apply(this, args);
+    };
 
-    const cartElement = document.querySelector('.myd-cart__products');
-    if (cartElement) {
-      observer.observe(cartElement, {
-        childList: true,
-        subtree: true,
-      });
-    }
-
-    // Monitor delivery method changes
-    const deliveryMethodInputs = document.querySelectorAll('input[name="myd-delivery-method"]');
-    deliveryMethodInputs.forEach(function (input) {
-      input.addEventListener('change', function () {
-        console.log('[Free Delivery] Delivery method changed');
-        setTimeout(forceRecalculate, 200);
-      });
-    });
-
-    // Monitor when checkout tab changes
-    const checkoutTabs = document.querySelectorAll('.myd-checkout__nav-item');
-    checkoutTabs.forEach(function (tab) {
-      tab.addEventListener('click', function () {
-        setTimeout(forceRecalculate, 300);
-      });
-    });
+    console.log('[Free Delivery] XHR interceptor installed');
   }
+
 
   /**
    * Initialize free delivery functionality
@@ -286,15 +160,11 @@
       currency: window.mydStoreInfo.currency?.symbol,
     });
 
-    overrideCalculateTotal();
-    overrideDeliverySet();
-    monitorCartUpdates();
+    // Install interceptors to monitor cart API responses
+    interceptFetchRequests();
+    interceptXHRRequests();
 
-    // Force initial calculation after a delay to ensure everything is loaded
-    setTimeout(function () {
-      console.log('[Free Delivery] Initial calculation');
-      forceRecalculate();
-    }, 1000);
+    console.log('[Free Delivery] Initialization complete');
   }
 
   // Initialize when DOM is ready
