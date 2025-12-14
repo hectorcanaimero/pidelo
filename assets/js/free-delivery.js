@@ -112,6 +112,9 @@
         if (this._url && this._url.includes('admin-ajax.php')) {
           try {
             const response = JSON.parse(this.responseText);
+            console.log('[Free Delivery] XHR Response received:', response);
+
+            // Check both response.data and response directly
             if (response && response.data) {
               checkFreeDeliveryFromResponse(response.data);
             } else {
@@ -119,6 +122,7 @@
             }
           } catch (e) {
             // Not JSON, ignore
+            console.log('[Free Delivery] XHR response not JSON:', e);
           }
         }
       });

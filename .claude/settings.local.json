@@ -26,7 +26,8 @@
       "Bash(gh workflow run:*)",
       "Bash(git checkout:*)",
       "Bash(php -r:*)",
-      "Bash(php test-free-delivery.php:*)"
+      "Bash(php test-free-delivery.php:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []

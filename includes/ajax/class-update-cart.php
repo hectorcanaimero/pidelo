@@ -33,9 +33,18 @@ class Update_Cart {
 
 		$data = json_decode( stripslashes( $_POST['data'] ), true );
 		$cart = new Cart( $data['items'] );
+
+		// Calculate if free delivery should be applied
+		$free_delivery_enabled = get_option( 'myd-free-delivery-enabled' ) === 'yes';
+		$free_delivery_amount = floatval( get_option( 'myd-free-delivery-amount', 0 ) );
+		$subtotal = $cart->total;
+		$free_delivery_applied = $free_delivery_enabled && $free_delivery_amount > 0 && $subtotal >= $free_delivery_amount;
+
 		$response = array(
 			'cart' => $cart,
 			'template' => $cart->get_cart_list_template(),
+			'subtotal' => $subtotal,
+			'free_delivery_applied' => $free_delivery_applied,
 		);
 		echo json_encode( $response, true );
 		wp_die();
