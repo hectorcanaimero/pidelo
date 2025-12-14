@@ -107,7 +107,9 @@
           const deliveryElement = document.querySelector(
             '.myd-cart__payment-amount-delivery .myd-cart__payment-amount-info-number',
           );
-          const totalElement = document.querySelector('.myd-cart__payment-amount-total .myd-cart__payment-amount-info-number');
+          const totalElement = document.querySelector(
+            '.myd-cart__payment-amount-total .myd-cart__payment-amount-info-number',
+          );
 
           if (deliveryElement) {
             const currencySymbol = window.mydStoreInfo?.currency?.symbol || '$';
@@ -136,7 +138,7 @@
           // Hide message if subtotal is below minimum
           hideFreeDeliveryMessage();
         }
-      }, 50); // Wait 50ms to ensure original method completes all its work
+      }, 100); // Wait 50ms to ensure original method completes all its work
 
       return result;
     };
