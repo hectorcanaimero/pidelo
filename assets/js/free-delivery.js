@@ -39,6 +39,36 @@
   }
 
   /**
+   * Update delivery price in DOM
+   */
+  function updateDeliveryPriceInDOM(isFree) {
+    const deliveryElement = document.querySelector(
+      '.myd-cart__payment-amount-delivery .myd-cart__payment-amount-info-number',
+    );
+
+    if (!deliveryElement) {
+      console.log('[Free Delivery] Delivery element not found in DOM');
+      return;
+    }
+
+    if (isFree) {
+      const currencySymbol = window.mydStoreInfo?.currency?.symbol || '$';
+      const decimalSeparator = window.mydStoreInfo?.currency?.decimalSeparator || '.';
+      const decimalNumbers = window.mydStoreInfo?.currency?.decimalNumbers || 2;
+      const freeText = currencySymbol + ' 0' + decimalSeparator + '0'.repeat(decimalNumbers);
+
+      console.log('[Free Delivery] Updating delivery price to:', freeText);
+      deliveryElement.textContent = freeText;
+
+      // Also update MydOrder.delivery if it exists
+      if (window.MydOrder) {
+        window.MydOrder.delivery = 0;
+        console.log('[Free Delivery] Updated MydOrder.delivery to 0');
+      }
+    }
+  }
+
+  /**
    * Check cart response data for free delivery flag
    */
   function checkFreeDeliveryFromResponse(data) {
@@ -54,7 +84,15 @@
     // We just need to show the UI badge if it's applied
     if (data.free_delivery_applied === true) {
       console.log('[Free Delivery] Free delivery applied by backend!');
-      showFreeDeliveryMessage();
+
+      // Use setTimeout to ensure DOM is updated after any other scripts
+      setTimeout(() => {
+        // Update delivery price in DOM to $0
+        updateDeliveryPriceInDOM(true);
+
+        // Show the badge
+        showFreeDeliveryMessage();
+      }, 50);
     } else {
       hideFreeDeliveryMessage();
     }
