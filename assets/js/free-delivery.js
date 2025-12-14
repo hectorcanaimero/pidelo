@@ -34,7 +34,9 @@
    * Show free delivery message
    */
   function showFreeDeliveryMessage() {
-    const deliveryPriceElement = document.querySelector('.myd-cart__payment-amount-delivery .myd-cart__payment-amount-info-number');
+    const deliveryPriceElement = document.querySelector(
+      '.myd-cart__payment-amount-delivery .myd-cart__payment-amount-info-number',
+    );
     if (!deliveryPriceElement) return;
 
     // Check if message already exists
@@ -151,7 +153,9 @@
     const subtotal = window.MydOrder.subtotal || 0;
     if (shouldApplyFreeDelivery(subtotal)) {
       // Update delivery price in DOM
-      const deliveryPriceElement = document.querySelector('.myd-cart__payment-amount-delivery .myd-cart__payment-amount-info-number');
+      const deliveryPriceElement = document.querySelector(
+        '.myd-cart__payment-amount-delivery .myd-cart__payment-amount-info-number',
+      );
       if (deliveryPriceElement) {
         const currencySymbol = window.mydStoreInfo?.currency?.symbol || '$';
         deliveryPriceElement.textContent = currencySymbol + ' 0.00';
@@ -217,6 +221,9 @@
   function init() {
     // Only proceed if free delivery is enabled
     if (!window.mydStoreInfo || !window.mydStoreInfo.freeDelivery || !window.mydStoreInfo.freeDelivery.enabled) {
+      console.log(window.mydStoreInfo);
+      console.log(window.mydStoreInfo.freeDelivery);
+      console.log(window.mydStoreInfo.freeDelivery.enabled);
       console.log('[Free Delivery] Feature is disabled');
       return;
     }
