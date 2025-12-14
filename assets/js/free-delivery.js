@@ -219,12 +219,18 @@
    * Initialize free delivery functionality
    */
   function init() {
+    // Wait for mydStoreInfo to be available
+    if (typeof window.mydStoreInfo === 'undefined') {
+      console.log('[Free Delivery] Waiting for mydStoreInfo...');
+      setTimeout(init, 100);
+      return;
+    }
+
     // Only proceed if free delivery is enabled
-    if (!window.mydStoreInfo || !window.mydStoreInfo.freeDelivery || !window.mydStoreInfo.freeDelivery.enabled) {
-      console.log(window.mydStoreInfo);
-      console.log(window.mydStoreInfo.freeDelivery);
-      console.log(window.mydStoreInfo.freeDelivery.enabled);
-      console.log('[Free Delivery] Feature is disabled');
+    if (!window.mydStoreInfo.freeDelivery || !window.mydStoreInfo.freeDelivery.enabled) {
+      console.log('[Free Delivery] Feature is disabled', {
+        freeDelivery: window.mydStoreInfo.freeDelivery,
+      });
       return;
     }
 
