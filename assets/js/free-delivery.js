@@ -83,27 +83,30 @@
       // Call original method first to calculate everything
       const result = window.MydOrder._originalCalculateTotal();
 
-      // Get current subtotal AFTER original calculation
-      const subtotal = this.subtotal || 0;
-      const currentDelivery = this.delivery || 0;
+      // Use setTimeout to ensure we check AFTER all calculations are done
+      setTimeout(() => {
+        // Get current subtotal AFTER original calculation completes
+        const subtotal = window.MydOrder.subtotal || 0;
+        const currentDelivery = window.MydOrder.delivery || 0;
 
-      console.log('[Free Delivery] After calculateTotal - subtotal:', subtotal, 'delivery:', currentDelivery);
+        console.log('[Free Delivery] After calculateTotal - subtotal:', subtotal, 'delivery:', currentDelivery);
 
-      // Check if free delivery should be applied
-      if (shouldApplyFreeDelivery(subtotal)) {
-        console.log('[Free Delivery] Applying free delivery! Setting delivery to 0');
+        // Check if free delivery should be applied
+        if (shouldApplyFreeDelivery(subtotal)) {
+          console.log('[Free Delivery] Applying free delivery! Setting delivery to 0');
 
-        // Set delivery price to 0
-        this.delivery = 0;
+          // Set delivery price to 0
+          window.MydOrder.delivery = 0;
 
-        // Recalculate total
-        this.total = subtotal + this.delivery - this.discount;
+          // Recalculate total
+          window.MydOrder.total = subtotal + window.MydOrder.delivery - (window.MydOrder.discount || 0);
 
-        console.log('[Free Delivery] New total:', this.total);
+          console.log('[Free Delivery] New total:', window.MydOrder.total);
 
-        // Force DOM update with setTimeout to ensure it happens after the original method's DOM updates
-        setTimeout(function () {
-          const deliveryElement = document.querySelector('.myd-cart__payment-amount-delivery .myd-cart__payment-amount-info-number');
+          // Force DOM update
+          const deliveryElement = document.querySelector(
+            '.myd-cart__payment-amount-delivery .myd-cart__payment-amount-info-number',
+          );
           const totalElement = document.querySelector('.myd-cart__payment-amount-total .myd-cart__payment-amount-info-number');
 
           if (deliveryElement) {
@@ -129,11 +132,11 @@
 
           // Show free delivery message
           showFreeDeliveryMessage();
-        }, 10);
-      } else {
-        // Hide message if subtotal is below minimum
-        hideFreeDeliveryMessage();
-      }
+        } else {
+          // Hide message if subtotal is below minimum
+          hideFreeDeliveryMessage();
+        }
+      }, 50); // Wait 50ms to ensure original method completes all its work
 
       return result;
     };
