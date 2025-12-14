@@ -11,7 +11,6 @@
   function showFreeDeliveryMessage() {
     const deliveryFeeValue = document.querySelector('#myd-cart-payment-delivery-fee-value');
     if (!deliveryFeeValue) {
-      console.log('[Free Delivery] Delivery fee value element not found');
       return;
     }
 
@@ -27,7 +26,6 @@
     badge.style.cssText = 'color: #4caf50; font-weight: bold; font-size: 0.9em; margin-top: 4px;';
 
     deliveryFeeValue.appendChild(badge);
-    console.log('[Free Delivery] Badge added to DOM');
   }
 
   /**
@@ -47,7 +45,6 @@
     const deliveryElement = document.querySelector('#myd-cart-payment-delivery-fee-value .myd-cart__summary-price-usd');
 
     if (!deliveryElement) {
-      console.log('[Free Delivery] Delivery price element not found in DOM');
       return;
     }
 
@@ -57,12 +54,10 @@
       const decimalNumbers = window.mydStoreInfo?.currency?.decimalNumbers || 2;
       const freeText = currencySymbol + ' 0' + decimalSeparator + '0'.repeat(decimalNumbers);
 
-      console.log('[Free Delivery] Updating delivery price to:', freeText);
       deliveryElement.textContent = freeText;
 
       // Also update MydOrder.delivery if it exists
       if (window.MydOrder) {
-        const oldDelivery = window.MydOrder.delivery || 0;
         window.MydOrder.delivery = 0;
 
         // Recalculate total
@@ -71,15 +66,11 @@
         const newTotal = subtotal - discount;
         window.MydOrder.total = newTotal;
 
-        console.log('[Free Delivery] Updated MydOrder.delivery to 0');
-        console.log('[Free Delivery] Recalculated total:', newTotal, '(was:', subtotal + oldDelivery - discount, ')');
-
         // Update total in DOM
         const totalElement = document.querySelector('#myd-cart-payment-total-value .myd-cart__summary-price-usd');
         if (totalElement) {
           const totalFormatted = newTotal.toFixed(decimalNumbers).replace('.', decimalSeparator);
           const totalText = currencySymbol + ' ' + totalFormatted;
-          console.log('[Free Delivery] Updating total to:', totalText);
           totalElement.textContent = totalText;
         }
       }
@@ -95,7 +86,6 @@
   function applyFreeDeliveryToDOM() {
     if (!freeDeliveryActive) return;
 
-    console.log('[Free Delivery] Attempting to apply to DOM...');
     updateDeliveryPriceInDOM(true);
     showFreeDeliveryMessage();
   }
@@ -111,7 +101,6 @@
       const deliveryElement = document.querySelector('#myd-cart-payment-delivery-fee-value');
 
       if (deliveryElement && freeDeliveryActive) {
-        console.log('[Free Delivery] DOM updated, reapplying free delivery');
         // Small delay to ensure rendering is complete
         setTimeout(applyFreeDeliveryToDOM, 10);
       }
@@ -121,8 +110,6 @@
       childList: true,
       subtree: true,
     });
-
-    console.log('[Free Delivery] DOM observer installed');
   }
 
   /**
@@ -131,18 +118,10 @@
   function checkFreeDeliveryFromResponse(data) {
     if (!data || typeof data !== 'object') return;
 
-    console.log('[Free Delivery] Checking cart response:', {
-      subtotal: data.subtotal,
-      delivery_price: data.delivery_price,
-      free_delivery_applied: data.free_delivery_applied,
-    });
-
     // Update global state
     freeDeliveryActive = data.free_delivery_applied === true;
 
     if (freeDeliveryActive) {
-      console.log('[Free Delivery] Free delivery applied by backend!');
-
       // Apply immediately
       applyFreeDeliveryToDOM();
 
@@ -184,8 +163,6 @@
         return response;
       });
     };
-
-    console.log('[Free Delivery] Fetch interceptor installed');
   }
 
   /**
@@ -206,7 +183,6 @@
         if (this._url && this._url.includes('admin-ajax.php')) {
           try {
             const response = JSON.parse(this.responseText);
-            console.log('[Free Delivery] XHR Response received:', response);
 
             // Check both response.data and response directly
             if (response && response.data) {
@@ -216,15 +192,12 @@
             }
           } catch (e) {
             // Not JSON, ignore
-            console.log('[Free Delivery] XHR response not JSON:', e);
           }
         }
       });
 
       return originalSend.apply(this, args);
     };
-
-    console.log('[Free Delivery] XHR interceptor installed');
   }
 
 
@@ -236,10 +209,8 @@
     if (typeof window.mydStoreInfo === 'undefined') {
       // Try to use backup from wp_localize_script
       if (typeof window.mydStoreInfoBackup !== 'undefined') {
-        console.log('[Free Delivery] Using backup mydStoreInfo');
         window.mydStoreInfo = window.mydStoreInfoBackup;
       } else {
-        console.log('[Free Delivery] Waiting for mydStoreInfo...');
         setTimeout(init, 100);
         return;
       }
@@ -247,16 +218,8 @@
 
     // Only proceed if free delivery is enabled
     if (!window.mydStoreInfo.freeDelivery || !window.mydStoreInfo.freeDelivery.enabled) {
-      console.log('[Free Delivery] Feature is disabled', {
-        freeDelivery: window.mydStoreInfo.freeDelivery,
-      });
       return;
     }
-
-    console.log('[Free Delivery] Initializing...', {
-      minimumAmount: window.mydStoreInfo.freeDelivery.minimumAmount,
-      currency: window.mydStoreInfo.currency?.symbol,
-    });
 
     // Install interceptors to monitor cart API responses
     interceptFetchRequests();
@@ -264,8 +227,6 @@
 
     // Watch for DOM changes to reapply free delivery
     watchForDOMChanges();
-
-    console.log('[Free Delivery] Initialization complete');
   }
 
   // Initialize when DOM is ready
