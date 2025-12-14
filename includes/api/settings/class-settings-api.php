@@ -383,7 +383,9 @@ class Settings_Api {
 				'myd-operation-mode-delivery',
 				'myd-operation-mode-take-away',
 				'myd-operation-mode-in-store',
-				'myd-skip-payment-in-store'
+				'myd-skip-payment-in-store',
+				'myd-free-delivery-enabled',
+				'myd-free-delivery-amount'
 			),
 			'store' => array(
 				'fdm-list-menu-categories',
@@ -532,6 +534,7 @@ class Settings_Api {
 			'fdm-sms-notifications',
 			'myd-payment-receipt-required',
 			'myd-skip-payment-in-store',
+			'myd-free-delivery-enabled',
 			'myd-currency-conversion-enabled',
 			'myd-currency-manual-rate-usd-vef-enabled',
 			'myd-currency-manual-rate-eur-vef-enabled',
@@ -558,6 +561,7 @@ class Settings_Api {
 			'myd-notification-audio-volume',
 			'myd-notification-repeat-count',
 			'myd-option-minimum-price',
+			'myd-free-delivery-amount',
 			'myd-currency-manual-rate-usd-vef',
 			'myd-currency-manual-rate-eur-vef',
 			'myd-shipping-distance-address-latitude',
@@ -641,6 +645,7 @@ class Settings_Api {
 				'fdm-sms-notifications',
 				'myd-payment-receipt-required',
 				'myd-skip-payment-in-store',
+				'myd-free-delivery-enabled',
 				'myd-currency-conversion-enabled',
 				'myd-currency-manual-rate-usd-vef-enabled',
 				'myd-currency-manual-rate-eur-vef-enabled',
@@ -657,6 +662,7 @@ class Settings_Api {
 				'myd-notification-audio-volume',
 				'myd-notification-repeat-count',
 				'myd-option-minimum-price',
+				'myd-free-delivery-amount',
 				'myd-currency-manual-rate-usd-vef',
 				'myd-currency-manual-rate-eur-vef',
 				'myd-shipping-distance-address-latitude',
