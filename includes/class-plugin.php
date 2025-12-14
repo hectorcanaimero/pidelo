@@ -436,6 +436,14 @@ final class Plugin {
 		// Agregar mydStoreInfo siempre que se registre el script
 		wp_add_inline_script( 'myd-create-order', $this->get_store_info_js(), 'before' );
 
+		// IMPORTANT: Also add via wp_localize_script as backup to ensure it's always available
+		// This helps with caching issues
+		wp_localize_script(
+			'myd-create-order',
+			'mydStoreInfoBackup',
+			$this->get_store_info_data()
+		);
+
 		// Register payment receipt upload handler
 		wp_register_script( 'myd-payment-receipt', MYD_PLUGN_URL . 'assets/js/payment-receipt.js', array( 'myd-create-order' ), MYD_CURRENT_VERSION, true );
 
@@ -593,12 +601,12 @@ final class Plugin {
 	}
 
 	/**
-	 * Get store info JavaScript variables
-	 * 
-	 * @since 2.2.19
-	 * @return string
+	 * Get store info data (reusable method)
+	 *
+	 * @since 2.3.11
+	 * @return array
 	 */
-	public function get_store_info_js() {
+	private function get_store_data_array() {
 		/**
 		 * Delivery time
 		 */
@@ -632,7 +640,7 @@ final class Plugin {
 			$shipping_options = 'false';
 		}
 
-		$store_data = array(
+		return array(
 			'currency' => array(
 				'symbol' => Store_Data::get_store_data( 'currency_simbol' ),
 				'decimalSeparator' => get_option( 'fdm-decimal-separator' ),
@@ -670,7 +678,26 @@ final class Plugin {
 				),
 			),
 		);
+	}
 
+	/**
+	 * Get store info data for wp_localize_script
+	 *
+	 * @since 2.3.11
+	 * @return array
+	 */
+	public function get_store_info_data() {
+		return $this->get_store_data_array();
+	}
+
+	/**
+	 * Get store info JavaScript variables
+	 *
+	 * @since 2.2.19
+	 * @return string
+	 */
+	public function get_store_info_js() {
+		$store_data = $this->get_store_data_array();
 		$store_data = \wp_json_encode( $store_data, JSON_FORCE_OBJECT | JSON_UNESCAPED_UNICODE );
 		return 'const mydStoreInfo = ' . $store_data . ';';
 	}

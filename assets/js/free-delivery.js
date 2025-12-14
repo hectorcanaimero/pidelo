@@ -244,9 +244,15 @@
   function init() {
     // Wait for mydStoreInfo to be available
     if (typeof window.mydStoreInfo === 'undefined') {
-      console.log('[Free Delivery] Waiting for mydStoreInfo...');
-      setTimeout(init, 100);
-      return;
+      // Try to use backup from wp_localize_script
+      if (typeof window.mydStoreInfoBackup !== 'undefined') {
+        console.log('[Free Delivery] Using backup mydStoreInfo');
+        window.mydStoreInfo = window.mydStoreInfoBackup;
+      } else {
+        console.log('[Free Delivery] Waiting for mydStoreInfo...');
+        setTimeout(init, 100);
+        return;
+      }
     }
 
     // Only proceed if free delivery is enabled
