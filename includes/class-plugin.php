@@ -645,6 +645,10 @@ final class Plugin {
 				'method' => \esc_attr( $shipping_type ),
 				'options' => $shipping_options,
 			),
+			'freeDelivery' => array(
+				'enabled' => get_option( 'myd-free-delivery-enabled' ) === 'yes',
+				'minimumAmount' => floatval( get_option( 'myd-free-delivery-amount', 0 ) ),
+			),
 			'minimumPurchase' => get_option( 'myd-option-minimum-price' ),
 			'autoRedirect' => get_option( 'myd-option-redirect-whatsapp' ),
 			'messages' => array(
@@ -658,6 +662,7 @@ final class Plugin {
 				'extraMin' => esc_html__( 'Select the minimum required for the extra', 'myd-delivery-pro' ),
 				'inputRequired' => esc_html__( 'Required inputs empty', 'myd-delivery-pro' ),
 				'minimumPrice' => esc_html__( 'The minimum order is', 'myd-delivery-pro' ),
+				'freeDelivery' => esc_html__( 'Delivery gratis!', 'myd-delivery-pro' ),
 				'template' => false,
 				'shipping' => array(
 					'mapApiError' => esc_html__( 'Sorry, error on request to calculate delivery distance', 'myd-delivery-pro' ),
