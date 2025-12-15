@@ -6,27 +6,37 @@
   'use strict';
 
   /**
-   * Attach remove item handlers to cart items
+   * Use event delegation on parent container
    */
-  function attachRemoveHandlers() {
-    const removeButtons = document.querySelectorAll('.myd-cart__products-action');
+  function setupEventDelegation() {
+    // Get the cart products container (parent that doesn't get re-rendered)
+    const cartContainer = document.querySelector('.myd-cart__products');
 
-    removeButtons.forEach((button) => {
-      // Remove any existing listeners by cloning
-      const newButton = button.cloneNode(true);
-      button.parentNode.replaceChild(newButton, button);
+    if (!cartContainer) {
+      // Container not ready yet, try again
+      setTimeout(setupEventDelegation, 100);
+      return;
+    }
 
-      // Add fresh listener
-      newButton.addEventListener('click', function (e) {
+    // Remove any existing delegated listeners by cloning and replacing
+    const newCartContainer = cartContainer.cloneNode(true);
+    cartContainer.parentNode.replaceChild(newCartContainer, cartContainer);
+
+    // Add delegated event listener
+    newCartContainer.addEventListener('click', function (e) {
+      // Check if clicked element is or contains the remove button
+      const removeButton = e.target.closest('.myd-cart__products-action');
+
+      if (removeButton) {
         e.preventDefault();
         e.stopPropagation();
 
-        const productKey = this.dataset.productKey;
+        const productKey = removeButton.dataset.productKey;
 
         if (productKey !== undefined && window.MydCart) {
           window.MydCart.removeItem(productKey);
         }
-      });
+      }
     });
   }
 
@@ -35,15 +45,10 @@
    */
   function init() {
     if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', attachRemoveHandlers);
+      document.addEventListener('DOMContentLoaded', setupEventDelegation);
     } else {
-      attachRemoveHandlers();
+      setupEventDelegation();
     }
-
-    // Reattach handlers when cart updates
-    window.addEventListener('MydCartUpdated', function () {
-      setTimeout(attachRemoveHandlers, 100);
-    });
   }
 
   init();
