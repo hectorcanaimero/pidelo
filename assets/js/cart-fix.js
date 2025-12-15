@@ -6,24 +6,11 @@
   'use strict';
 
   /**
-   * Use event delegation on parent container
+   * Use event delegation on document body (always available)
    */
   function setupEventDelegation() {
-    // Get the cart products container (parent that doesn't get re-rendered)
-    const cartContainer = document.querySelector('.myd-cart__products');
-
-    if (!cartContainer) {
-      // Container not ready yet, try again
-      setTimeout(setupEventDelegation, 100);
-      return;
-    }
-
-    // Remove any existing delegated listeners by cloning and replacing
-    const newCartContainer = cartContainer.cloneNode(true);
-    cartContainer.parentNode.replaceChild(newCartContainer, cartContainer);
-
-    // Add delegated event listener
-    newCartContainer.addEventListener('click', function (e) {
+    // Use document.body for delegation (never gets re-rendered)
+    document.body.addEventListener('click', function (e) {
       // Check if clicked element is or contains the remove button
       const removeButton = e.target.closest('.myd-cart__products-action');
 
@@ -34,10 +21,13 @@
         const productKey = removeButton.dataset.productKey;
 
         if (productKey !== undefined && window.MydCart) {
+          console.log('[Cart Fix] Removing item with key:', productKey);
           window.MydCart.removeItem(productKey);
         }
       }
     });
+
+    console.log('[Cart Fix] Event delegation installed on document.body');
   }
 
   /**

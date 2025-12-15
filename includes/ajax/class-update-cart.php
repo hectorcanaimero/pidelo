@@ -37,7 +37,7 @@ class Update_Cart {
 		// Calculate if free delivery should be applied
 		$free_delivery_enabled = get_option( 'myd-free-delivery-enabled' ) === 'yes';
 		$free_delivery_amount = floatval( get_option( 'myd-free-delivery-amount', 0 ) );
-		$subtotal = $cart->total;
+		$subtotal = isset( $cart->total ) ? floatval( $cart->total ) : 0;
 		$free_delivery_applied = $free_delivery_enabled && $free_delivery_amount > 0 && $subtotal >= $free_delivery_amount;
 
 		$response = array(
@@ -46,7 +46,7 @@ class Update_Cart {
 			'subtotal' => $subtotal,
 			'free_delivery_applied' => $free_delivery_applied,
 		);
-		echo json_encode( $response, true );
+		echo wp_json_encode( $response );
 		wp_die();
 	}
 }
