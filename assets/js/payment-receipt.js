@@ -313,8 +313,14 @@
           return;
         }
 
-        // Mostrar éxito
-        showUploadSuccess(file.name);
+        // Mostrar barra de progreso mientras se procesa
+        showUploadProgress();
+
+        // Simular progreso de carga (el archivo ya está en el input)
+        setTimeout(() => {
+          hideUploadProgress();
+          showUploadSuccess(file.name);
+        }, 800);
       }
     });
   }
@@ -357,8 +363,8 @@
         });
       }
 
-      // Validación: Verificar que se haya seleccionado un método de pago si el campo está visible
-      if (paymentType === 'upon-delivery' && isFileInputVisible) {
+      // Validación: Si el campo de comprobante está visible, validar
+      if (isFileInputVisible) {
         const paymentData = this.payment.get();
         const paymentOption = paymentData.option;
 
@@ -375,8 +381,32 @@
           selectedRadioValue: selectedRadio ? selectedRadio.value : null,
         });
 
-        // Si no hay archivo y el comprobante es obligatorio
-        if (!hasFile) {
+        // Verificar si hay método de pago seleccionado
+        const hasPaymentMethod = (paymentOption && paymentOption.trim() !== '') || selectedRadio;
+
+        // Si NO hay método de pago seleccionado Y NO hay archivo
+        if (!hasPaymentMethod && !hasFile) {
+          window.Myd.removeLoadingAnimation('.myd-cart__button-text');
+
+          showUploadError('Debes seleccionar un método de pago o adjuntar tu comprobante');
+
+          alert(
+            '⚠️ Información de Pago Requerida\n\nPor favor:\n• Selecciona un método de pago (Efectivo, Transferencia, etc.)\n• O adjunta tu comprobante de pago\n\nPara continuar con el pedido.',
+          );
+
+          // Hacer scroll a las opciones de pago
+          const paymentOptions = document.querySelector('.myd-cart__payment-options-container');
+          if (paymentOptions) {
+            setTimeout(() => {
+              paymentOptions.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
+          }
+
+          return false;
+        }
+
+        // Si hay método de pago pero NO hay archivo
+        if (hasPaymentMethod && !hasFile) {
           window.Myd.removeLoadingAnimation('.myd-cart__button-text');
 
           showMissingReceiptWarning();
@@ -393,10 +423,7 @@
           return false;
         }
 
-        // Si hay archivo pero no se seleccionó método de pago
-        // Verificamos tanto el objeto payment como el DOM directamente
-        const hasPaymentMethod = (paymentOption && paymentOption.trim() !== '') || selectedRadio;
-
+        // Si hay archivo pero NO hay método de pago
         if (hasFile && !hasPaymentMethod) {
           window.Myd.removeLoadingAnimation('.myd-cart__button-text');
 
