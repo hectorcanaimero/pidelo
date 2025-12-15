@@ -119,12 +119,16 @@
     const currencySymbol = window.mydStoreInfo.conversion.currencySymbol || 'Bs';
 
     // Format the converted amount (Venezuelan format: . for thousands, , for decimals)
-    // First convert to string with 2 decimals
-    let formattedConverted = convertedAmount.toFixed(2);
-    // Add thousands separator (.)
-    formattedConverted = formattedConverted.replace(/\B(?=(\d{3})+(?!\.))/g, '.');
-    // Replace decimal point with comma
-    formattedConverted = formattedConverted.replace(/\.(\d{2})$/, ',$1');
+    // First, separate integer and decimal parts
+    const parts = convertedAmount.toFixed(2).split('.');
+    const integerPart = parts[0];
+    const decimalPart = parts[1];
+
+    // Add thousands separator (.) to integer part
+    const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+    // Combine with comma as decimal separator
+    const formattedConverted = formattedInteger + ',' + decimalPart;
 
     // Check if conversion element exists
     let conversionElement = container.querySelector('.myd-currency-conversion');
