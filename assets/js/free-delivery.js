@@ -56,6 +56,16 @@
 
       deliveryElement.textContent = freeText;
 
+      // Remove or update conversion display for delivery fee
+      const deliveryContainer = document.querySelector('#myd-cart-payment-delivery-fee-value .myd-cart__summary-price-container');
+      if (deliveryContainer) {
+        // Remove the conversion element if it exists
+        const conversionElement = deliveryContainer.querySelector('.myd-currency-conversion');
+        if (conversionElement) {
+          conversionElement.remove();
+        }
+      }
+
       // Also update MydOrder.delivery if it exists
       if (window.MydOrder) {
         window.MydOrder.delivery = 0;
@@ -73,8 +83,65 @@
           const totalText = currencySymbol + ' ' + totalFormatted;
           totalElement.textContent = totalText;
         }
+
+        // Update total conversion if it exists
+        const totalContainer = document.querySelector('#myd-cart-payment-total-value .myd-cart__summary-price-container');
+        if (totalContainer && window.mydStoreInfo?.conversion) {
+          updateConversionDisplay(totalContainer, newTotal);
+        }
       }
     }
+  }
+
+  /**
+   * Update conversion display for a given container and amount
+   */
+  function updateConversionDisplay(container, amount) {
+    if (!container || !window.mydStoreInfo?.conversion) {
+      return;
+    }
+
+    const conversionEnabled = window.mydStoreInfo.conversion.enabled;
+    const conversionRate = window.mydStoreInfo.conversion.rate;
+
+    if (!conversionEnabled || !conversionRate || amount <= 0) {
+      // Remove conversion if amount is 0 or conversion is disabled
+      const conversionElement = container.querySelector('.myd-currency-conversion');
+      if (conversionElement) {
+        conversionElement.remove();
+      }
+      return;
+    }
+
+    // Calculate converted amount
+    const convertedAmount = amount * conversionRate;
+    const currencyCode = window.mydStoreInfo.conversion.currencyCode || 'VEF';
+    const currencySymbol = window.mydStoreInfo.conversion.currencySymbol || 'Bs';
+
+    // Format the converted amount (Venezuelan format: . for thousands, , for decimals)
+    // First convert to string with 2 decimals
+    let formattedConverted = convertedAmount.toFixed(2);
+    // Add thousands separator (.)
+    formattedConverted = formattedConverted.replace(/\B(?=(\d{3})+(?!\.))/g, '.');
+    // Replace decimal point with comma
+    formattedConverted = formattedConverted.replace(/\.(\d{2})$/, ',$1');
+
+    // Check if conversion element exists
+    let conversionElement = container.querySelector('.myd-currency-conversion');
+
+    if (!conversionElement) {
+      // Create new conversion element
+      conversionElement = document.createElement('div');
+      conversionElement.className = 'myd-currency-conversion';
+      container.appendChild(conversionElement);
+    }
+
+    // Update conversion HTML
+    conversionElement.innerHTML = `
+      <span class="myd-converted-price myd-vef-price">
+        ${currencySymbol} ${formattedConverted} <small>${currencyCode}</small>
+      </span>
+    `;
   }
 
   // Store current free delivery state

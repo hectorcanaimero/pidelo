@@ -643,11 +643,33 @@ final class Plugin {
 			$shipping_options = 'false';
 		}
 
+		/**
+		 * Currency conversion data (for VEF conversion)
+		 */
+		$conversion_enabled = Currency_Converter::is_conversion_enabled();
+		$store_currency = Currency_Converter::get_store_currency();
+		$conversion_rate = false;
+
+		if ( $conversion_enabled ) {
+			// Get the appropriate conversion rate based on store currency
+			if ( $store_currency === 'USD' ) {
+				$conversion_rate = Currency_Converter::get_usd_vef_rate();
+			} elseif ( $store_currency === 'EUR' ) {
+				$conversion_rate = Currency_Converter::get_eur_vef_rate();
+			}
+		}
+
 		return array(
 			'currency' => array(
 				'symbol' => Store_Data::get_store_data( 'currency_simbol' ),
 				'decimalSeparator' => get_option( 'fdm-decimal-separator' ),
 				'decimalNumbers' => intval( get_option( 'fdm-number-decimal' ) ),
+			),
+			'conversion' => array(
+				'enabled' => $conversion_enabled,
+				'rate' => $conversion_rate,
+				'currencyCode' => 'VEF',
+				'currencySymbol' => 'Bs',
 			),
 			'countryCode' => Store_Data::get_store_data( 'country_code' ),
 			'forceStore' => get_option( 'myd-delivery-force-open-close-store' ),
