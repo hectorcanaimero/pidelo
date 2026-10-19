@@ -56,7 +56,7 @@ class Admin_Page {
 			'capability' => 'publish_posts',
 			'slug' => 'myd-delivery-dashoboard',
 			'call_template' => '',
-			'icon' => MYD_PLUGN_URL . 'assets/img/fdm-icon.png',
+			'icon' => MYD_PLUGIN_URL . 'assets/img/fdm-icon.png',
 			'position' => 56,
 		];
 

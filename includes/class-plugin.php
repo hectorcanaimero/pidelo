@@ -324,13 +324,13 @@ final class Plugin {
 	 * @return void
 	 */
 	public function enqueue_admin_scripts() {
-		wp_register_script( 'myd-admin-scritps', MYD_PLUGN_URL . 'assets/js/admin/admin-scripts.min.js', [], MYD_CURRENT_VERSION, true );
+		wp_register_script( 'myd-admin-scritps', MYD_PLUGIN_URL . 'assets/js/admin/admin-scripts.min.js', [], MYD_CURRENT_VERSION, true );
 		wp_enqueue_script( 'myd-admin-scritps' );
 
-		wp_register_script( 'myd-admin-cf-media-library', MYD_PLUGN_URL . 'assets/js/admin/custom-fields/media-library.min.js', [], MYD_CURRENT_VERSION, true );
-		wp_register_script( 'myd-admin-cf-repeater', MYD_PLUGN_URL . 'assets/js/admin/custom-fields/repeater.min.js', [], MYD_CURRENT_VERSION, true );
+		wp_register_script( 'myd-admin-cf-media-library', MYD_PLUGIN_URL . 'assets/js/admin/custom-fields/media-library.min.js', [], MYD_CURRENT_VERSION, true );
+		wp_register_script( 'myd-admin-cf-repeater', MYD_PLUGIN_URL . 'assets/js/admin/custom-fields/repeater.min.js', [], MYD_CURRENT_VERSION, true );
 
-		wp_register_style( 'myd-admin-style', MYD_PLUGN_URL . 'assets/css/admin/admin-style.min.css', [], MYD_CURRENT_VERSION );
+		wp_register_style( 'myd-admin-style', MYD_PLUGIN_URL . 'assets/css/admin/admin-style.min.css', [], MYD_CURRENT_VERSION );
 		wp_enqueue_style( 'myd-admin-style' );
 
 		wp_register_script( 'myd-chart-js', 'https://cdn.jsdelivr.net/npm/chart.js', array(), MYD_CURRENT_VERSION, true );
@@ -349,7 +349,7 @@ final class Plugin {
 		if ( $should_load ) {
 			wp_register_script(
 				'myd-evolution-admin',
-				MYD_PLUGN_URL . 'assets/js/evolution-admin.js',
+				MYD_PLUGIN_URL . 'assets/js/evolution-admin.js',
 				array( 'jquery' ),
 				MYD_CURRENT_VERSION,
 				true
@@ -384,7 +384,7 @@ final class Plugin {
 
 			wp_register_style(
 				'myd-evolution-api',
-				MYD_PLUGN_URL . 'assets/css/evolution-api.css',
+				MYD_PLUGIN_URL . 'assets/css/evolution-api.css',
 				array(),
 				MYD_CURRENT_VERSION
 			);
@@ -403,7 +403,7 @@ final class Plugin {
 		wp_register_style( 'plugin_pdf_css', 'https://printjs-4de6.kxcdn.com/print.min.css', array(), MYD_CURRENT_VERSION, true );
 
 		// jQuery Mask Plugin para máscaras de teléfono
-		wp_register_script( 'jquery-mask', MYD_PLUGN_URL . 'assets/lib/js/jquery.mask.js', array( 'jquery' ), '1.14.16', true );
+		wp_register_script( 'jquery-mask', MYD_PLUGIN_URL . 'assets/lib/js/jquery.mask.js', array( 'jquery' ), '1.14.16', true );
 
 		// Inicializar jQuery Mask para todos los campos con data-mask
 		$mask_init_script = "
@@ -423,7 +423,7 @@ final class Plugin {
 		";
 		wp_add_inline_script( 'jquery-mask', $mask_init_script );
 
-		wp_register_script( 'myd-create-order', MYD_PLUGN_URL . 'assets/js/order.min.js', array( 'jquery-mask' ), MYD_CURRENT_VERSION, true );
+		wp_register_script( 'myd-create-order', MYD_PLUGIN_URL . 'assets/js/order.min.js', array( 'jquery-mask' ), MYD_CURRENT_VERSION, true );
 		wp_localize_script(
 			'myd-create-order',
 			'ajax_object',
@@ -445,26 +445,26 @@ final class Plugin {
 		);
 
 		// Register payment receipt upload handler
-		wp_register_script( 'myd-payment-receipt', MYD_PLUGN_URL . 'assets/js/payment-receipt.js', array( 'myd-create-order' ), MYD_CURRENT_VERSION, true );
+		wp_register_script( 'myd-payment-receipt', MYD_PLUGIN_URL . 'assets/js/payment-receipt.js', array( 'myd-create-order' ), MYD_CURRENT_VERSION, true );
 
 		// Register skip payment in store handler
-		wp_register_script( 'myd-skip-payment-in-store', MYD_PLUGN_URL . 'assets/js/skip-payment-in-store.js', array( 'myd-create-order' ), MYD_CURRENT_VERSION, true );
+		wp_register_script( 'myd-skip-payment-in-store', MYD_PLUGIN_URL . 'assets/js/skip-payment-in-store.js', array( 'myd-create-order' ), MYD_CURRENT_VERSION, true );
 
 		// Register free delivery handler
-		wp_register_script( 'myd-free-delivery', MYD_PLUGN_URL . 'assets/js/free-delivery.js', array( 'myd-create-order' ), MYD_CURRENT_VERSION, true );
+		wp_register_script( 'myd-free-delivery', MYD_PLUGIN_URL . 'assets/js/free-delivery.js', array( 'myd-create-order' ), MYD_CURRENT_VERSION, true );
 
 		// Register cart fix handler
-		wp_register_script( 'myd-cart-fix', MYD_PLUGN_URL . 'assets/js/cart-fix.js', array( 'myd-create-order' ), MYD_CURRENT_VERSION, true );
+		wp_register_script( 'myd-cart-fix', MYD_PLUGIN_URL . 'assets/js/cart-fix.js', array( 'myd-create-order' ), MYD_CURRENT_VERSION, true );
 
-		wp_register_style( 'myd-delivery-frontend', MYD_PLUGN_URL . 'assets/css/delivery-frontend.min.css', array(), MYD_CURRENT_VERSION );
-		wp_register_style( 'myd-order-panel-frontend', MYD_PLUGN_URL . 'assets/css/order-panel-frontend.min.css', array(), MYD_CURRENT_VERSION );
-		wp_register_style( 'myd-track-order-frontend', MYD_PLUGN_URL . 'assets/css/track-order-frontend.min.css', array(), MYD_CURRENT_VERSION );
+		wp_register_style( 'myd-delivery-frontend', MYD_PLUGIN_URL . 'assets/css/delivery-frontend.min.css', array(), MYD_CURRENT_VERSION );
+		wp_register_style( 'myd-order-panel-frontend', MYD_PLUGIN_URL . 'assets/css/order-panel-frontend.min.css', array(), MYD_CURRENT_VERSION );
+		wp_register_style( 'myd-track-order-frontend', MYD_PLUGIN_URL . 'assets/css/track-order-frontend.min.css', array(), MYD_CURRENT_VERSION );
 
 		/**
 		 * Orders Panel
 		 * TODO: refactor Jquery and merge scripts
 		 */
-		wp_register_script( 'myd-orders-panel', MYD_PLUGN_URL . 'assets/js/orders-panel/frontend.min.js', array(), MYD_CURRENT_VERSION, true );
+		wp_register_script( 'myd-orders-panel', MYD_PLUGIN_URL . 'assets/js/orders-panel/frontend.min.js', array(), MYD_CURRENT_VERSION, true );
 		wp_localize_script(
 			'myd-orders-panel',
 			'order_ajax_object',
@@ -475,7 +475,7 @@ final class Plugin {
 			)
 		);
 
-		wp_register_script( 'myd-order-list-ajax', MYD_PLUGN_URL . 'assets/js/order-list-ajax.min.js', array( 'jquery' ), MYD_CURRENT_VERSION, true );
+		wp_register_script( 'myd-order-list-ajax', MYD_PLUGIN_URL . 'assets/js/order-list-ajax.min.js', array( 'jquery' ), MYD_CURRENT_VERSION, true );
 
 		// Script personalizado para manejar impresión de órdenes
 		wp_add_inline_script( 'myd-orders-panel', $this->get_print_handler_js() );
@@ -487,7 +487,7 @@ final class Plugin {
 		if ( get_option( 'myd-evolution-api-enabled' ) === 'yes' ) {
 			wp_register_script(
 				'myd-evolution-panel',
-				MYD_PLUGN_URL . 'assets/js/evolution-admin.js',
+				MYD_PLUGIN_URL . 'assets/js/evolution-admin.js',
 				array( 'jquery', 'myd-orders-panel' ),
 				MYD_CURRENT_VERSION,
 				true
@@ -509,7 +509,7 @@ final class Plugin {
 
 			wp_register_style(
 				'myd-evolution-panel-css',
-				MYD_PLUGN_URL . 'assets/css/evolution-api.css',
+				MYD_PLUGIN_URL . 'assets/css/evolution-api.css',
 				array(),
 				MYD_CURRENT_VERSION
 			);
@@ -851,7 +851,7 @@ final class Plugin {
 	 * @return string
 	 */
 	public function get_enhanced_notification_js() {
-		$plugin_url = MYD_PLUGN_URL;
+		$plugin_url = MYD_PLUGIN_URL;
 		return "
 		// Sistema simple de notificaciones mejoradas
 		window.MydEnhancedNotifications = {

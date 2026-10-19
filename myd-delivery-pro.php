@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 define( 'MYD_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
-define( 'MYD_PLUGN_URL', plugin_dir_url( __FILE__ ) );
+define( 'MYD_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'MYD_PLUGIN_MAIN_FILE', __FILE__ );
 define( 'MYD_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 define( 'MYD_PLUGIN_DIRNAME', plugin_basename( __DIR__ ) );

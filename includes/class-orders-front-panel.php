@@ -447,7 +447,7 @@ class Myd_Orders_Front_Panel {
 				console.log('MYD: 🔊 Intentando reproducir sonido...');
 				
 				// Método 1: Audio HTML5
-				const audio = new Audio('<?php echo MYD_PLUGN_URL; ?>assets/songs/trim.mp3');
+				const audio = new Audio('<?php echo MYD_PLUGIN_URL; ?>assets/songs/trim.mp3');
 				audio.volume = 0.8;
 				audio.preload = 'auto';
 				
@@ -505,7 +505,7 @@ class Myd_Orders_Front_Panel {
 					
 					message.onclick = function() {
 						// Reproducir audio después del click del usuario
-						const audio = new Audio('<?php echo MYD_PLUGN_URL; ?>assets/songs/trim.mp3');
+						const audio = new Audio('<?php echo MYD_PLUGIN_URL; ?>assets/songs/trim.mp3');
 						audio.volume = 0.8;
 						audio.play().then(() => {
 							console.log('MYD: ✅ Audio habilitado por el usuario');

@@ -51,7 +51,7 @@ class Update_Settings_Page {
 
 		wp_enqueue_style(
 			'myd-update-settings',
-			MYD_PLUGN_URL . 'assets/css/admin.min.css',
+			MYD_PLUGIN_URL . 'assets/css/admin.min.css',
 			array(),
 			MYD_CURRENT_VERSION
 		);

@@ -97,7 +97,7 @@ $status_tag = [
 		<?php if ( true ) : ?>
 			<div class="myd-admin-cards myd-card-3columns">
 				<div class="myd-admin-cards__item myd-cards--flex-centered myd-card--20padding">
-					<img src="<?php echo esc_attr( MYD_PLUGN_URL . 'assets/img/package.png'); ?>" width="100px" alt="products">
+					<img src="<?php echo esc_attr( MYD_PLUGIN_URL . 'assets/img/package.png'); ?>" width="100px" alt="products">
 					<h3 class="myd-admin-cards__title"><?php esc_html_e( 'Products', 'myd-delivery-pro' );?></h3>
 					<p class="myd-admin-cards__description"><?php esc_html_e( 'Create, edit and manage your products', 'myd-delivery-pro' ); ?></p>
 					<a class="button button-primary myd-cards--margin-top10" href="<?php echo esc_attr( site_url( '/wp-admin/edit.php?post_type=mydelivery-produtos' ) ); ?>">
@@ -106,7 +106,7 @@ $status_tag = [
 				</div>
 
 				<div class="myd-admin-cards__item myd-cards--flex-centered myd-card--20padding">
-					<img src="<?php echo esc_attr( MYD_PLUGN_URL . 'assets/img/orders.png');?>" width="100px" alt="orders">
+					<img src="<?php echo esc_attr( MYD_PLUGIN_URL . 'assets/img/orders.png');?>" width="100px" alt="orders">
 					<h3 class="myd-admin-cards__title"><?php esc_html_e( 'Orders', 'myd-delivery-pro' ); ?></h3>
 					<p class="myd-admin-cards__description"><?php esc_html_e( 'Check all your orders and manage it', 'myd-delivery-pro' ); ?></p>
 					<a class="button button-primary myd-cards--margin-top10" href="<?php echo esc_attr( site_url( '/wp-admin/edit.php?post_type=mydelivery-orders' ) ); ?>">
@@ -115,7 +115,7 @@ $status_tag = [
 				</div>
 
 				<div class="myd-admin-cards__item myd-cards--flex-centered myd-card--20padding">
-					<img src="<?php echo esc_attr( MYD_PLUGN_URL . 'assets/img/customers.png');?>" width="100px" alt="customers">
+					<img src="<?php echo esc_attr( MYD_PLUGIN_URL . 'assets/img/customers.png');?>" width="100px" alt="customers">
 					<h3 class="myd-admin-cards__title"><?php esc_html_e( 'Customers', 'myd-delivery-pro' ); ?></h3>
 					<p class="myd-admin-cards__description"><?php esc_html_e( 'Manage all your customers', 'myd-delivery-pro' ); ?></p>
 					<a class="button button-primary myd-cards--margin-top10" href="<?php echo esc_attr( site_url( '/wp-admin/admin.php?page=myd-delivery-customers' ) ); ?>">
@@ -124,7 +124,7 @@ $status_tag = [
 				</div>
 
 				<div class="myd-admin-cards__item myd-cards--flex-centered myd-card--20padding">
-					<img src="<?php echo esc_attr( MYD_PLUGN_URL . 'assets/img/coupon.png');?>" width="100px" alt="coupons">
+					<img src="<?php echo esc_attr( MYD_PLUGIN_URL . 'assets/img/coupon.png');?>" width="100px" alt="coupons">
 					<h3 class="myd-admin-cards__title"><?php esc_html_e( 'Coupons', 'myd-delivery-pro' ); ?></h3>
 					<p class="myd-admin-cards__description"><?php esc_html_e( 'Do you want give a discount? Use your cupons for it', 'myd-delivery-pro' ); ?></p>
 					<a class="button button-primary myd-cards--margin-top10" href="<?php echo esc_attr( site_url( '/wp-admin/edit.php?post_type=mydelivery-coupons' ) ); ?>">
@@ -133,7 +133,7 @@ $status_tag = [
 				</div>
 
 				<div class="myd-admin-cards__item myd-cards--flex-centered myd-card--20padding">
-					<img src="<?php echo esc_attr( MYD_PLUGN_URL . 'assets/img/reports.png');?>" width="100px" alt="reports">
+					<img src="<?php echo esc_attr( MYD_PLUGIN_URL . 'assets/img/reports.png');?>" width="100px" alt="reports">
 					<h3 class="myd-admin-cards__title"><?php esc_html_e( 'Reports', 'myd-delivery-pro' ); ?></h3>
 					<p class="myd-admin-cards__description"><?php esc_html_e( 'Check many info about your store, orders and more', 'myd-delivery-pro' ); ?></p>
 					<a class="button button-primary myd-cards--margin-top10" href="<?php echo esc_attr( site_url( '/wp-admin/admin.php?page=myd-delivery-reports' ) ); ?>">
@@ -142,7 +142,7 @@ $status_tag = [
 				</div>
 
 				<div class="myd-admin-cards__item myd-cards--flex-centered myd-card--20padding">
-					<img src="<?php echo esc_attr( MYD_PLUGN_URL . 'assets/img/settings.png');?>" width="100px" alt="settings">
+					<img src="<?php echo esc_attr( MYD_PLUGIN_URL . 'assets/img/settings.png');?>" width="100px" alt="settings">
 					<h3 class="myd-admin-cards__title"><?php esc_html_e( 'Settings', 'myd-delivery-pro' ); ?></h3>
 					<p class="myd-admin-cards__description"><?php esc_html_e( 'Manage your Store settings here', 'myd-delivery-pro' ); ?></p>
 					<a class="button button-primary myd-cards--margin-top10" href="<?php echo esc_attr( site_url( '/wp-admin/admin.php?page=myd-delivery-settings' ) ); ?>">
